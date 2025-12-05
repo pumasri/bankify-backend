@@ -4,8 +4,8 @@ server:
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/bankify
-    username: bank_user
-    password: bank_pass
+    username: stafarn
+    password: Stafarn7474
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -15,6 +15,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
   cache:
     type: redis
@@ -22,6 +23,12 @@ spring:
     redis:
       host: localhost
       port: 6379
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: bankify
+    password: bankify
 
 logging:
   level:
