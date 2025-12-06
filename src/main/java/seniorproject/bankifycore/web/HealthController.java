@@ -1,4 +1,4 @@
-package seniorproject.bankifycore.controller;
+package seniorproject.bankifycore.web;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
