@@ -1,4 +1,3 @@
-
 services:
   postgres:
     image: postgres:17
@@ -11,14 +10,25 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
+  bankify:
+    build: .
+    container_name: bankify-app
+    restart: always
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bankify
+      SPRING_DATASOURCE_USERNAME: bankify
+      SPRING_DATASOURCE_PASSWORD: bankify
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
 
   redis:
     image: redis:7
     container_name: bankify-redis
     ports:
       - "6379:6479"
-
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -27,9 +37,8 @@ services:
       RABBITMQ_DEFAULT_USER: bankify
       RABBITMQ_DEFAULT_PASS: bankify
     ports:
-      - "5672:5672"        #AMQP
-      - "15672:15672"       #Management UI
+      - "5672:5672" #AMQP
+      - "15672:15672" #Management UI
 
 volumes:
   postgres_data:
-

@@ -1,6 +1,5 @@
 package seniorproject.bankifycore.security;
 
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,7 +9,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-public class BankUserDetails implements UserDetails {
+public class BankifyUserDetails implements UserDetails {
 
     private final UUID id;
     private final String email;
@@ -18,7 +17,7 @@ public class BankUserDetails implements UserDetails {
     private final User.Role role;
     private final boolean active;
 
-    public BankUserDetails(User user) {
+    public BankifyUserDetails(User user) {
         this.id = user.getId();
         this.email = user.getEmail();
         this.passwordHash = user.getPasswordHash();

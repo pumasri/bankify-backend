@@ -4,13 +4,13 @@ server:
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/bankify
-    username: stafarn
-    password: Stafarn7474
+    username: bankify
+    password: bankify
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update   # for now, auto-create tables; change to validate in prod
+      ddl-auto: update # for now, auto-create tables; change to validate in prod
     show-sql: true
     properties:
       hibernate:
@@ -29,6 +29,11 @@ spring:
     port: 5672
     username: bankify
     password: bankify
+
+  security:
+    jwt:
+      secret: "this-should-be-long-and-random-change-me-later-1234567890"
+      expiration-seconds: 3600
 
 logging:
   level:
