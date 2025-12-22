@@ -8,7 +8,7 @@ public class HealthController {
 
     @GetMapping("/api/health")
     public String health() {
-        return "OK";
+        return "This is working awesome";
     }
 
     @GetMapping("/api/protected-test")
