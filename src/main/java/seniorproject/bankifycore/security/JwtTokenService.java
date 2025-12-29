@@ -19,7 +19,7 @@ public class JwtTokenService {
     @Value("${security.jwt.secret:change-me-in-prod-change-me-in-prod-change-me}")
     private String secret;
 
-    @Value("${security-jwt-expiration-seconds:3600}")
+    @Value("${security.jwt.expiration-seconds:180}")
     private long expirationSeconds;
 
     private Key key;
@@ -33,17 +33,15 @@ public class JwtTokenService {
         Instant now = Instant.now();
         Instant expiry = now.plusSeconds(expirationSeconds);
 
-
         return Jwts.builder()
                 .setSubject(user.getId().toString())
-                .claim("email",user.getEmail())
-                .claim("role",user.getRole())
+                .claim("email", user.getEmail())
+                .claim("role", user.getRole())
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(expiry))
-                .signWith(key, SignatureAlgorithm.ES256)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
-
 
     public Claims parseToken(String token) {
         return Jwts.parserBuilder()

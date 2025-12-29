@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -27,6 +27,7 @@ public class AuthController {
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
 
+        System.out.println("It is reaching here" + request.getEmail());
         if (optionalUser.isEmpty()) {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
@@ -67,4 +68,3 @@ public class AuthController {
         private String role;
     }
 }
-

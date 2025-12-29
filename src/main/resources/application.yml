@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/bankify
+    url: jdbc:postgresql://localhost:5433/bankify
     username: bankify
     password: bankify
     driver-class-name: org.postgresql.Driver
@@ -33,7 +33,7 @@ spring:
   security:
     jwt:
       secret: "this-should-be-long-and-random-change-me-later-1234567890"
-      expiration-seconds: 3600
+      expiration-seconds: 180
 
 logging:
   level:
