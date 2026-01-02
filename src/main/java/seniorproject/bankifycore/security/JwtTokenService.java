@@ -19,7 +19,7 @@ public class JwtTokenService {
     @Value("${security.jwt.secret:change-me-in-prod-change-me-in-prod-change-me}")
     private String secret;
 
-    @Value("${security.jwt.expiration-seconds:180}")
+    @Value("${security.jwt.expiration-seconds:3600}")
     private long expirationSeconds;
 
     private Key key;

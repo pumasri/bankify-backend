@@ -33,7 +33,7 @@ spring:
   security:
     jwt:
       secret: "this-should-be-long-and-random-change-me-later-1234567890"
-      expiration-seconds: 180
+      expiration-seconds: 3600
 
 logging:
   level:
