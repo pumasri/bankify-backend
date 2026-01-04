@@ -9,10 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import seniorproject.bankifycore.dto.request.CreateCustomerRequest;
-import seniorproject.bankifycore.dto.request.UpdateCustomerRequest;
-import seniorproject.bankifycore.dto.response.CustomerResponse;
-import seniorproject.bankifycore.service.AccountService;
+import seniorproject.bankifycore.dto.customer.CreateCustomerRequest;
+import seniorproject.bankifycore.dto.customer.UpdateCustomerRequest;
+import seniorproject.bankifycore.dto.customer.CustomerResponse;
 import seniorproject.bankifycore.service.CustomerService;
 
 @RestController
@@ -20,7 +19,6 @@ import seniorproject.bankifycore.service.CustomerService;
 @RequiredArgsConstructor
 public class CustomerController {
 
-    private final AccountService accountService;
     private final CustomerService customerService;
 
     @GetMapping
@@ -41,11 +39,11 @@ public class CustomerController {
         return ResponseEntity.status(HttpStatus.OK).body(customer);
     }
 
-    @PatchMapping("/{customerId}")
-    public ResponseEntity<CustomerResponse> update(@PathVariable UUID customerId,
+    @PatchMapping("/{accountId}")
+    public ResponseEntity<CustomerResponse> update(@PathVariable UUID accountId,
             @Valid @RequestBody UpdateCustomerRequest request) {
 
-        CustomerResponse updateCustomer = customerService.updateCustomer(customerId, request);
+        CustomerResponse updateCustomer = customerService.updateCustomer(accountId, request);
         return ResponseEntity.status(HttpStatus.OK).body(updateCustomer);
     }
 

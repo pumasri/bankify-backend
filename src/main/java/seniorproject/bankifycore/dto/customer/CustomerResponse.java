@@ -1,10 +1,8 @@
-package seniorproject.bankifycore.dto.response;
+package seniorproject.bankifycore.dto.customer;
 
-import lombok.Data;
 import seniorproject.bankifycore.domain.enums.CustomerStatus;
 import seniorproject.bankifycore.domain.enums.CustomerType;
 
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 

@@ -1,4 +1,4 @@
-package seniorproject.bankifycore.dto.request;
+package seniorproject.bankifycore.dto.customer;
 
 import jakarta.validation.constraints.NotBlank;
 

@@ -1,6 +1,4 @@
-package seniorproject.bankifycore.dto.request;
-
-import seniorproject.bankifycore.domain.enums.CustomerStatus;
+package seniorproject.bankifycore.dto.customer;
 
 public record UpdateCustomerRequest (
     String firstName,

@@ -3,6 +3,8 @@ package seniorproject.bankifycore.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import seniorproject.bankifycore.domain.base.Auditable;
+import seniorproject.bankifycore.domain.enums.AccountStatus;
+import seniorproject.bankifycore.domain.enums.AccountType;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -36,13 +38,10 @@ public class Account extends Auditable {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status = Status.ACTIVE;
+    private AccountStatus status = AccountStatus.ACTIVE;
 
 
     @Version
     private int version;
-
-    public enum Status {ACTIVE, FROZEN,CURRENT}
-    public enum AccountType {WALLET,SAVINGS,CURRENT}
 
 }
