@@ -7,9 +7,9 @@ import java.util.UUID;
 import jakarta.validation.constraints.NotBlank;
 
 public record CreateAccountRequest(
-                @NotBlank UUID customerId,
+        @NotBlank UUID customerId,
 
-                @NotBlank AccountType type,
+        @NotBlank AccountType type,
 
-                @NotBlank String currency) {
+        @NotBlank String currency) {
 }
