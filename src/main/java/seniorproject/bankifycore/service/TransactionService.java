@@ -27,10 +27,12 @@ public class TransactionService {
     private final AccountRepository accountRepo;
 
     @Transactional
-    public TransactionResponse deposit(DepositRequest request) {
+    public TransactionResponse deposit(String idemKey, DepositRequest request) {
 
         // check for repeated transaction idempotency
-        idempotencyCheck(request.reference());
+        TransactionResponse existing = returnExistingIfDuplicate(idemKey);
+        if (existing != null)
+            return existing;
 
         // find the account | Check the account existence
         Account account = accountRepo.findById(request.accountId())
@@ -41,7 +43,7 @@ public class TransactionService {
         }
 
         // Validating the amount of the
-        if (request.amount().compareTo(BigDecimal.ZERO) <= 0) {
+        if (request.amount() == null || request.amount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalStateException("Depositing amount must  be greater than zero");
         }
 
@@ -55,21 +57,30 @@ public class TransactionService {
                 .status(TransactionStatus.SUCCESS)
                 .amount(request.amount())
                 .toAccount(account)
-                .reference(request.reference())
+                .reference(idemKey) // idempotency key stored here(unique)
                 .note(request.note())
                 .build();
 
         accountRepo.save(account);
-        transactionRepo.save(transaction);
+        try {
+            transactionRepo.save(transaction);
+            return toResponse(transaction);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            // race safe:if two requests with the same key hit at the same time
+            return transactionRepo.findByReference(idemKey)
+                    .map(this::toResponse)
+                    .orElseThrow(() -> e);
+        }
 
-        return toResponse(transaction);
     }
 
     @Transactional
-    public TransactionResponse withdraw(WithdrawRequest request) {
+    public TransactionResponse withdraw(String idemKey, WithdrawRequest request) {
 
         // check for repeated transaction
-        idempotencyCheck(request.reference());
+        TransactionResponse existing = returnExistingIfDuplicate(idemKey);
+        if (existing != null)
+            return existing;
 
         Account account = accountRepo.findById(request.accountId())
                 .orElseThrow(() -> new IllegalArgumentException("Account Not found"));
@@ -93,21 +104,28 @@ public class TransactionService {
                 .status(TransactionStatus.SUCCESS)
                 .amount(request.amount())
                 .fromAccount(account)
-                .reference(request.reference())
+                .reference(idemKey)
                 .note(request.note())
                 .build();
 
         accountRepo.save(account);
-        transactionRepo.save(transaction);
-
-        return toResponse(transaction);
+        try {
+            transactionRepo.save(transaction);
+            return toResponse(transaction);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            return transactionRepo.findByReference(idemKey)
+                    .map(this::toResponse)
+                    .orElseThrow(() -> e);
+        }
     }
 
     @Transactional
-    public TransactionResponse transfer(TransferRequest request) {
+    public TransactionResponse transfer(String idemKey, TransferRequest request) {
 
         // check for repeated transaction idempotency
-        idempotencyCheck(request.reference());
+        TransactionResponse existing = returnExistingIfDuplicate(idemKey);
+        if (existing != null)
+            return existing;
 
         if (request.fromAccountId().equals(request.toAccountId())) {
             throw new IllegalStateException("Cannot transfer to the same account");
@@ -140,22 +158,31 @@ public class TransactionService {
                 .amount(request.amount())
                 .fromAccount(fromAccount)
                 .toAccount(toAccount)
-                .reference(request.reference())
+                .reference(idemKey)
                 .note(request.note())
                 .build();
 
         accountRepo.save(fromAccount);
         accountRepo.save(toAccount);
-        transactionRepo.save(transaction);
-        return toResponse(transaction);
+        try {
+            transactionRepo.save(transaction);
+            return toResponse(transaction);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            return transactionRepo.findByReference(idemKey)
+                    .map(this::toResponse)
+                    .orElseThrow(() -> e);
+        }
+
     }
 
     // idempotencyCheck method helper
-    private void idempotencyCheck(String reference) {
-        transactionRepo.findByReference(reference)
-                .ifPresent(existingTransaction -> {
-                    throw new IllegalStateException("Transaction already processed");
-                });
+    private TransactionResponse returnExistingIfDuplicate(String idemKey) {
+        if (idemKey == null || idemKey.isBlank()) {
+            throw new IllegalStateException("Idempotency-Key header is required");
+        }
+        return transactionRepo.findByReference(idemKey)
+                .map(this::toResponse)
+                .orElse(null);
     }
 
     // list by aacount id

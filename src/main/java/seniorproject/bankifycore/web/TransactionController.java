@@ -21,22 +21,32 @@ public class TransactionController {
     // Deposit money into an account
     // API end point for top-ups
     @PostMapping("/deposit")
-    public TransactionResponse deposit(@RequestBody DepositRequest depositRequest) {
-        return transactionService.deposit(depositRequest);
+    public TransactionResponse deposit(
+            @RequestHeader("Idempotency-Key") String idemKey,
+            @RequestBody DepositRequest depositRequest
+            )
+    {
+        return transactionService.deposit(idemKey,depositRequest);
     }
 
     // What: withdraw money from an account
     // Why: API endpoint for cash-out
     @PostMapping("/withdraw")
-    public TransactionResponse withdraw(@RequestBody WithdrawRequest withdrawRequest) {
-        return transactionService.withdraw(withdrawRequest);
+    public TransactionResponse withdraw(
+            @RequestHeader("Idempotency-Key") String idemKey,
+            @RequestBody WithdrawRequest withdrawRequest)
+    {
+        return transactionService.withdraw(idemKey,withdrawRequest);
     }
 
     // What: transfer money between accounts
     // Why: API endpoint for moving money
     @PostMapping("/transfer")
-    public TransactionResponse transfer(@RequestBody TransferRequest transferRequest) {
-        return transactionService.transfer(transferRequest);
+    public TransactionResponse transfer(
+            @RequestHeader("Idempotency-Key") String idemKey,
+            @RequestBody TransferRequest transferRequest)
+    {
+        return transactionService.transfer(idemKey,transferRequest);
     }
 
     // What: list transactions for history/testing
@@ -55,6 +65,3 @@ public class TransactionController {
 
 }
 
-// account 1 id = 7452ea78-8c19-4b28-b081-29f2a3d1d275
-// account 2 id = 24ba7741-e817-423c-b8dd-5275621da1e2
-// account 3 id = 3e5bbb89-9d84-4185-84b4-a522e2bb1ead //frozen account

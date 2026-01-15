@@ -7,7 +7,6 @@ public record TransferRequest(
         UUID fromAccountId,
         UUID toAccountId,
         BigDecimal amount,
-        String reference,
         String note
 ) {
 }

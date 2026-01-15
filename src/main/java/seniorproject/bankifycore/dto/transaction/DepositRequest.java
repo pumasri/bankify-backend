@@ -6,7 +6,6 @@ import java.util.UUID;
 public record DepositRequest(
         UUID accountId,
         BigDecimal amount,
-        String reference,
         String note
 ) {
 }
