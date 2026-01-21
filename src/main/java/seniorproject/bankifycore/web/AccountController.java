@@ -5,7 +5,9 @@ import org.springframework.web.bind.annotation.*;
 import seniorproject.bankifycore.dto.account.AccountResponse;
 import seniorproject.bankifycore.dto.account.CreateAccountRequest;
 import seniorproject.bankifycore.dto.account.UpdateAccountRequest;
+import seniorproject.bankifycore.dto.ledger.LedgerEntryResponse;
 import seniorproject.bankifycore.service.AccountService;
+import seniorproject.bankifycore.service.LedgerService;
 
 import java.util.List;
 import java.util.UUID;
@@ -16,6 +18,7 @@ import java.util.UUID;
 public class AccountController {
 
         private final AccountService accountService;
+        private final LedgerService ledgerService;
 
 
         //POST   api/account     service.create()
@@ -41,5 +44,11 @@ public class AccountController {
         @PatchMapping("/{accountId}")
         public AccountResponse update(@PathVariable UUID accountId, @RequestBody UpdateAccountRequest req){
             return accountService.updateStatus(accountId, req);
+        }
+
+
+        @GetMapping("/{accountId}/ledger")
+        public List<LedgerEntryResponse> ledger(@PathVariable UUID accountId){
+                return ledgerService.listByAccount(accountId);
         }
 }
