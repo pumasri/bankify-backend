@@ -31,9 +31,12 @@ spring:
     password: bankify
 
   security:
+    api-key:
+      pepper:"CHANGE_ME_TO_LONG_RANDOM_SECRET"
     jwt:
       secret: "this-should-be-long-and-random-change-me-later-1234567890"
       expiration-seconds: 3600
+
 
 logging:
   level:

@@ -3,6 +3,8 @@ package seniorproject.bankifycore.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import seniorproject.bankifycore.domain.base.Auditable;
+import seniorproject.bankifycore.domain.enums.UserRole;
+import seniorproject.bankifycore.domain.enums.UserStatus;
 
 import java.util.UUID;
 
@@ -27,17 +29,9 @@ public class User extends Auditable {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role;
+    private UserRole role;
 
     @Column(nullable = false)
-    private Status status;
-
-    public enum Role {
-        ADMIN, OPERATOR, VIEWER
-    }
-
-    public enum Status {
-        ACTIVE, DISABLED
-    }
+    private UserStatus status;
 
 }

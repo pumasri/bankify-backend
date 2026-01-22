@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import seniorproject.bankifycore.domain.User;
+import seniorproject.bankifycore.domain.enums.UserRole;
+import seniorproject.bankifycore.domain.enums.UserStatus;
 import seniorproject.bankifycore.repository.UserRepository;
 
 @Configuration
@@ -23,8 +25,8 @@ public class DataInitializer {
                 User admin = User.builder()
                         .email(adminEmail)
                         .passwordHash(passwordEncoder.encode("admin123"))
-                        .role(User.Role.ADMIN)
-                        .status(User.Status.ACTIVE)
+                        .role(UserRole.ADMIN)
+                        .status(UserStatus.ACTIVE)
                         .build();
                 userRepository.save(admin);
                 System.out.println("Created default admin user:  "+adminEmail+" / admin123");

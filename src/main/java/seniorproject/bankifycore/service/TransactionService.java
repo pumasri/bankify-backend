@@ -20,7 +20,6 @@ import seniorproject.bankifycore.repository.TransactionRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -69,7 +68,7 @@ public class TransactionService {
         accountRepo.save(account);
         try {
             Transaction saved = transactionRepo.save(transaction);
-            writeLedger(account,saved,EntryDirection.CREDIT,request.amount());
+            writeLedger(account, saved, EntryDirection.CREDIT, request.amount());
             return toResponse(transaction);
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             // race safe:if two requests with the same key hit at the same time
@@ -117,7 +116,7 @@ public class TransactionService {
         accountRepo.save(account);
         try {
             Transaction saved = transactionRepo.save(transaction);
-            writeLedger(account,saved,EntryDirection.DEBIT,request.amount());
+            writeLedger(account, saved, EntryDirection.DEBIT, request.amount());
             return toResponse(transaction);
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             return transactionRepo.findByReference(idemKey)
@@ -173,7 +172,7 @@ public class TransactionService {
         accountRepo.save(toAccount);
         try {
             Transaction saved = transactionRepo.save(transaction);
-            //ledger record is done here
+            // ledger record is done here
             writeLedger(fromAccount, saved, EntryDirection.DEBIT, request.amount());
             writeLedger(toAccount, saved, EntryDirection.CREDIT, request.amount());
 
@@ -234,17 +233,16 @@ public class TransactionService {
                 transaction.getCreatedAt());
     }
 
-
-    //helper to write writeledger
-    private void writeLedger(Account account, Transaction transaction, EntryDirection dir,BigDecimal amount) {
+    // helper to write writeledger
+    private void writeLedger(Account account, Transaction transaction, EntryDirection dir, BigDecimal amount) {
         ledgerEntryRepo.save(
                 LedgerEntry.builder()
-                .account(account)
-                .transaction(transaction)
-                .direction(dir)
-                .amount(amount)
-                .currency(account.getCurrency())
-                .build());
+                        .account(account)
+                        .transaction(transaction)
+                        .direction(dir)
+                        .amount(amount)
+                        .currency(account.getCurrency())
+                        .build());
     }
 
 }

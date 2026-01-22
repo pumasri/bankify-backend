@@ -4,6 +4,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import seniorproject.bankifycore.domain.User;
+import seniorproject.bankifycore.domain.enums.UserRole;
+import seniorproject.bankifycore.domain.enums.UserStatus;
 
 import java.util.Collection;
 import java.util.List;
@@ -14,7 +16,7 @@ public class BankifyUserDetails implements UserDetails {
     private final UUID id;
     private final String email;
     private final String passwordHash;
-    private final User.Role role;
+    private final UserRole role;
     private final boolean active;
 
     public BankifyUserDetails(User user) {
@@ -22,7 +24,7 @@ public class BankifyUserDetails implements UserDetails {
         this.email = user.getEmail();
         this.passwordHash = user.getPasswordHash();
         this.role = user.getRole();
-        this.active = user.getStatus() == User.Status.ACTIVE;
+        this.active = user.getStatus() == UserStatus.ACTIVE;
     }
 
 
@@ -31,7 +33,7 @@ public class BankifyUserDetails implements UserDetails {
         return id;
     }
 
-    public User.Role getRole() {
+    public UserRole getRole() {
         return role;
     }
 

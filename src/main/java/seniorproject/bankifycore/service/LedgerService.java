@@ -1,9 +1,8 @@
 package seniorproject.bankifycore.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
-import seniorproject.bankifycore.domain.Account;
 import seniorproject.bankifycore.domain.LedgerEntry;
 import seniorproject.bankifycore.dto.ledger.LedgerEntryResponse;
 import seniorproject.bankifycore.repository.LedgerEntryRepository;
@@ -17,14 +16,14 @@ public class LedgerService {
 
     private final LedgerEntryRepository ledgerEntryRepo;
 
+    @Transactional
     public List<LedgerEntryResponse> listByAccount(UUID accountId) {
-        if(accountId == null) {
+        if (accountId == null) {
             throw new IllegalArgumentException("accountId cannot be null");
         }
         List<LedgerEntry> accounts = ledgerEntryRepo.findByAccount_IdOrderByCreatedAtDesc(accountId);
         return accounts.stream().map(this::toResponse).toList();
     }
-
 
     public LedgerEntryResponse toResponse(LedgerEntry ledgerEntry) {
         return new LedgerEntryResponse(
@@ -33,7 +32,6 @@ public class LedgerService {
                 ledgerEntry.getDirection().toString(),
                 ledgerEntry.getAmount(),
                 ledgerEntry.getCurrency(),
-                ledgerEntry.getCreatedAt()
-        );
+                ledgerEntry.getCreatedAt());
     }
 }
