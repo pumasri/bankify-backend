@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: bankify
       POSTGRES_PASSWORD: bankify
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
   bankify:
@@ -28,7 +28,7 @@ services:
     image: redis:7
     container_name: bankify-redis
     ports:
-      - "6379:6479"
+      - "6379:6379"
 
   rabbitmq:
     image: rabbitmq:3-management

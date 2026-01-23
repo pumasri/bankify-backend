@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/bankify
+    url: jdbc:postgresql://localhost:5432/bankify
     username: bankify
     password: bankify
     driver-class-name: org.postgresql.Driver
