@@ -2,6 +2,8 @@ package seniorproject.bankifycore.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import seniorproject.bankifycore.domain.Account;
 import seniorproject.bankifycore.domain.LedgerEntry;
@@ -19,6 +21,7 @@ import seniorproject.bankifycore.repository.LedgerEntryRepository;
 import seniorproject.bankifycore.repository.TransactionRepository;
 
 import java.math.BigDecimal;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -184,6 +187,8 @@ public class TransactionService {
         }
 
     }
+
+
 
     // idempotencyCheck method helper
     private TransactionResponse returnExistingIfDuplicate(String idemKey) {

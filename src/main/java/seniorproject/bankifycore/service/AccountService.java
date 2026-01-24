@@ -1,15 +1,19 @@
 package seniorproject.bankifycore.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import seniorproject.bankifycore.domain.Account;
 import seniorproject.bankifycore.domain.Customer;
 import seniorproject.bankifycore.domain.enums.AccountStatus;
+
 import seniorproject.bankifycore.domain.enums.CustomerStatus;
 import seniorproject.bankifycore.dto.account.AccountResponse;
 import seniorproject.bankifycore.dto.account.CreateAccountRequest;
 import seniorproject.bankifycore.dto.account.UpdateAccountRequest;
+import seniorproject.bankifycore.dto.admin.ResetPinRequest;
 import seniorproject.bankifycore.repository.AccountRepository;
 import seniorproject.bankifycore.repository.CustomerRepository;
 
@@ -18,13 +22,13 @@ import java.security.SecureRandom;
 import java.util.List;
 import java.util.UUID;
 
-
 @Service
 @RequiredArgsConstructor
 public class AccountService {
 
     private final AccountRepository accountRepo;
     private final CustomerRepository customerRepo;
+    private final PasswordEncoder passwordEncoder;
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
@@ -33,26 +37,33 @@ public class AccountService {
     // ✅ Rule: generate unique accountNumber
     // ✅ Rule: balance = 0, status = ACTIVE
 
-
     @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     public AccountResponse create(CreateAccountRequest req) {
+
         Customer customer = customerRepo.findById(req.customerId())
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        if(customer.getStatus() != CustomerStatus.ACTIVE){
+        if (customer.getStatus() != CustomerStatus.ACTIVE) {
             throw new RuntimeException("Customer status must be ACTIVE to create account");
         }
 
-        Account account = new Account();
-        account.setCustomer(customer);
-        account.setType(req.type());
-        account.setCurrency(req.currency());
+        if (req.pin() == null || !req.pin().matches("\\d{6}")) {
+            throw new IllegalArgumentException("PIN must be 6 digits and only digits");
+        }
 
-        //account number is set here
-        account.setAccountNumber(generateUniqueAccountNumber());
-
-        account.setBalance(BigDecimal.ZERO);
-        account.setStatus(AccountStatus.ACTIVE);
+        Account account = Account.builder()
+                .customer(customer)
+                .type(req.type())
+                .currency(req.currency())
+                .status(AccountStatus.ACTIVE)
+                .accountNumber(generateUniqueAccountNumber())
+                .balance(BigDecimal.ZERO) // ✅ REQUIRED
+                .pinHash(passwordEncoder.encode(req.pin()))
+                .pinChangeRequired(true)
+                .pinFailedAttempts(0)
+                .pinLockedUntil(null)
+                .build();
 
         Account savedAccount = accountRepo.save(account);
         return toResponse(savedAccount);
@@ -61,16 +72,16 @@ public class AccountService {
     @Transactional
     public List<AccountResponse> list(UUID customerId) {
         List<Account> accounts = (customerId == null)
-                ? accountRepo.findAll() : accountRepo.findByCustomer_Id(customerId);
+                ? accountRepo.findAll()
+                : accountRepo.findByCustomer_Id(customerId);
 
         return accounts.stream().map(this::toResponse).toList();
     }
 
-
     @Transactional
     public AccountResponse get(UUID accountId) {
         Account account = accountRepo.findById(accountId)
-                .orElseThrow(()-> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new RuntimeException("Account not found"));
 
         return toResponse(account);
     }
@@ -78,7 +89,7 @@ public class AccountService {
     @Transactional
     public AccountResponse updateStatus(UUID accountId, UpdateAccountRequest req) {
         Account account = accountRepo.findById(accountId)
-                .orElseThrow(()-> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new RuntimeException("Account not found"));
 
         account.setStatus(req.status());
 
@@ -87,11 +98,53 @@ public class AccountService {
         return toResponse(saved);
     }
 
- // ----------------------- Helpers -------------------------
+    @Transactional
+    public AccountResponse disable(UUID id) {
+        Account account = accountRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Account cannot be disabled , because account is not found"));
 
+        account.setStatus(AccountStatus.FROZEN);
+        accountRepo.save(account);
+
+        return toResponse(account);
+    }
+
+    @Transactional
+    public void resetPin(UUID accountId, ResetPinRequest req) {
+        Account acc = accountRepo.findById(accountId)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+
+        // ❌ Partner accounts never get ATM PINs
+        if (acc.getClientApp() != null) {
+            throw new IllegalArgumentException("Not a customer account");
+        }
+
+        // ❌ Frozen accounts cannot change PIN
+        if (acc.getStatus() == AccountStatus.FROZEN) {
+            throw new IllegalStateException("Account is frozen");
+        }
+
+        if (acc.getCustomer() != null && acc.getCustomer().getStatus() == CustomerStatus.FROZEN) {
+            throw new IllegalStateException("Customer is frozen");
+        }
+
+        // Validate PIN format
+        if (req.pin() == null || !req.pin().matches("\\d{6}")) {
+            throw new IllegalArgumentException("PIN must be 6 digits");
+        }
+
+        acc.setPinHash(passwordEncoder.encode(req.pin()));
+        acc.setPinChangeRequired(true);
+        acc.setPinFailedAttempts(0);
+        acc.setPinLockedUntil(null);
+        accountRepo.save(acc);
+    }
+
+    // ----------------------- Helpers -------------------------
 
     private String generateUniqueAccountNumber() {
-        // Example: 12 digits.  can change the format later.
+        // Example: 12 digits. can change the format later.
         // We loop until we find a number not in DB.
         String number;
         do {
@@ -100,6 +153,9 @@ public class AccountService {
         return number;
     }
 
+    public String getUniqueAccountNumber() {
+        return generateUniqueAccountNumber();
+    }
 
     private String randomDigits(int len) {
         StringBuilder sb = new StringBuilder(len);
@@ -112,16 +168,21 @@ public class AccountService {
     }
 
     private AccountResponse toResponse(Account account) {
+
+        UUID customerId = (account.getCustomer() == null) ? null : account.getCustomer().getId();
+        UUID clientAppId = (account.getClientApp() == null) ? null : account.getClientApp().getId();
+
         return new AccountResponse(
                 account.getId(),
-                account.getCustomer().getId(),
+                customerId,
+                clientAppId,
                 account.getAccountNumber(),
                 account.getType(),
-                account.getCurrency(),
+                account.getCurrency().name(),
                 account.getBalance(),
                 account.getStatus(),
                 account.getCreatedAt(),
-                account.getUpdatedAt()
-        );
+                account.getUpdatedAt());
     }
+
 }

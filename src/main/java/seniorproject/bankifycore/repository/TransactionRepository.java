@@ -23,4 +23,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     List<Transaction> findByCreatedAtBetween(Instant from, Instant to);
 
     List<Transaction> findAllByOrderByCreatedAtDesc();
+
+
+
 }

@@ -36,6 +36,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7);
             try {
                 Claims claims = jwtTokenService.parseToken(token);
+
+
+                //  If it's not a USER token, ignore it here (ATM token will be handled by AtmJwtAuthenticationFilter)
+                if (!"USER".equals(String.valueOf(claims.get("typ")))) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+                
+
                 String email = claims.get("email", String.class);
 
                 if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {

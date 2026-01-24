@@ -20,19 +20,22 @@ public class ClientAppController {
     private final ClientAppService clientAppService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('Admin','Operator')")
-    public CreateClientAppResponse create(@RequestBody CreateClientAppRequest req) {
+    @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
+    public CreateClientAppResponse create(Authentication auth, @RequestBody CreateClientAppRequest req) {
+        System.out.println("AUTH = " + auth);
+        System.out.println("AUTHORITIES = " + auth.getAuthorities());
+
         return clientAppService.create(req);
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('Admin','Operator')")
+    @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     public List<ClientAppResponse> list() {
         return clientAppService.list();
     }
 
     @PatchMapping("/{id}/disable")
-    @PreAuthorize("hasAnyRole('Admin','Operator')")
+    @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     public ClientAppResponse disable(@PathVariable UUID id) {
         return clientAppService.disable(id);
     }

@@ -12,6 +12,7 @@ import seniorproject.bankifycore.domain.User;
 import java.security.Key;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 public class JwtTokenService {
@@ -22,6 +23,9 @@ public class JwtTokenService {
     @Value("${security.jwt.expiration-seconds:3600}")
     private long expirationSeconds;
 
+    @Value("${security.jwt.atm-expiration-seconds:180}")
+    private long atmExpirationSeconds;
+
     private Key key;
 
     @PostConstruct
@@ -29,14 +33,30 @@ public class JwtTokenService {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
+    // existing humans
     public String generateToken(User user) {
         Instant now = Instant.now();
         Instant expiry = now.plusSeconds(expirationSeconds);
 
         return Jwts.builder()
                 .setSubject(user.getId().toString())
+                .claim("typ", "USER")
                 .claim("email", user.getEmail())
                 .claim("role", user.getRole())
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(expiry))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String generateAtmToken(UUID accountId) {
+        Instant now = Instant.now();
+        Instant expiry = now.plusSeconds(atmExpirationSeconds);
+
+        return Jwts.builder()
+                .setSubject("ATM")
+                .claim("typ", "ATM")
+                .claim("atmAccountId", accountId.toString())
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(expiry))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -49,6 +69,17 @@ public class JwtTokenService {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    public UUID extractAtmAccountId(Claims claims) {
+        Object v = claims.get("atmAccountId");
+        if (v == null)
+            throw new IllegalStateException("Missing atmAccountId claim");
+        return UUID.fromString(v.toString());
+    }
+
+    public boolean isAtmToken(Claims claims) {
+        return "ATM".equals(String.valueOf(claims.get("typ")));
     }
 
 }

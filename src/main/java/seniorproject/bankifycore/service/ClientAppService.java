@@ -4,14 +4,20 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import seniorproject.bankifycore.domain.Account;
 import seniorproject.bankifycore.domain.ClientApp;
+import seniorproject.bankifycore.domain.enums.AccountStatus;
+import seniorproject.bankifycore.domain.enums.AccountType;
 import seniorproject.bankifycore.domain.enums.ClientStatus;
+import seniorproject.bankifycore.domain.enums.Currency;
 import seniorproject.bankifycore.dto.clientapp.ClientAppResponse;
 import seniorproject.bankifycore.dto.clientapp.CreateClientAppRequest;
 import seniorproject.bankifycore.dto.clientapp.CreateClientAppResponse;
+import seniorproject.bankifycore.repository.AccountRepository;
 import seniorproject.bankifycore.repository.ClientAppRepository;
 import seniorproject.bankifycore.utils.ApiKeyUtils;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,6 +26,8 @@ import java.util.UUID;
 public class ClientAppService {
 
     private final ClientAppRepository clientAppRepo;
+    private final AccountRepository accountRepo;
+    private final AccountService accountService;
 
     @Value("${security.api-key.pepper:change-me}")
     private String pepper;
@@ -40,12 +48,25 @@ public class ClientAppService {
         }
 
         ClientApp client = ClientApp.builder()
-                .name(req.name())
+                .name(req.name().trim())
                 .status(ClientStatus.ACTIVE)
                 .apiKeyHash(hash)
                 .build();
 
         ClientApp saved = clientAppRepo.save(client);
+
+        Account partnerAccount = Account.builder()
+                .customer(null) // or however your Account is modeled (partner accounts don't belong to
+                                // Customer)
+                .type(AccountType.CURRENT) // banking type
+                .currency(Currency.THB) //
+                .status(AccountStatus.ACTIVE)
+                .balance(BigDecimal.ZERO)
+                .accountNumber(accountService.getUniqueAccountNumber()) // reuse the existing accoutn no generator
+                .clientApp(saved) // ✅ link
+                .build();
+
+        accountRepo.save(partnerAccount);
 
         // return the raw key ONCE
         return new CreateClientAppResponse(

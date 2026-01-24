@@ -1,15 +1,19 @@
 package seniorproject.bankifycore.dto.account;
 
+import jakarta.validation.constraints.NotNull;
 import seniorproject.bankifycore.domain.enums.AccountType;
 
 import java.util.UUID;
 
 import jakarta.validation.constraints.NotBlank;
+import seniorproject.bankifycore.domain.enums.Currency;
 
 public record CreateAccountRequest(
-        @NotBlank UUID customerId,
+                @NotNull UUID customerId,
 
-        @NotBlank AccountType type,
+                @NotNull AccountType type,
 
-        @NotBlank String currency) {
+                @NotNull Currency currency,
+                @NotBlank String pin
+                ) {
 }
