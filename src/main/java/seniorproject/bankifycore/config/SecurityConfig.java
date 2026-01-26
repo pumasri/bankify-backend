@@ -35,7 +35,9 @@ public class SecurityConfig {
                 http.securityMatcher("/api/partner/**")
                                 .csrf(csrf -> csrf.disable())
                                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                                .authorizeHttpRequests(auth -> auth.anyRequest().hasRole("PARTNER"))
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers("/api/partner/auth/signup").permitAll()
+                                                .anyRequest().hasRole("PARTNER"))
                                 .addFilterBefore(new ApiKeyAuthenticationFilter(clientAppRepository, apiKeyPepper),
                                                 UsernamePasswordAuthenticationFilter.class);
 

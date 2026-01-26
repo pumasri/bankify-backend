@@ -1,4 +1,4 @@
-package seniorproject.bankifycore.web;
+package seniorproject.bankifycore.web.partner;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;

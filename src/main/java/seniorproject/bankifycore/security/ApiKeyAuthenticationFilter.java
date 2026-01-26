@@ -24,39 +24,43 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
     private final String apiKeyPepper; // from config
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return !request.getRequestURI().startsWith("/api/partner/me/");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
-        //read api key from http header
+        // read api key from http header
         String apiKey = request.getHeader("X-API-Key");
 
-        //check if api not null and present if not reject right away
+        // check if api not null and present if not reject right away
         if (apiKey == null || apiKey.isBlank()) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing X-API-Key");
             return;
         }
 
-        //hash the api
+        // hash the api
         String hash = sha256(apiKey + apiKeyPepper);
 
-        //look up client in db and if the client is active
+        // look up client in db and if the client is active
         var client = clientAppRepository.findByApiKeyHashAndStatus(hash, ClientStatus.ACTIVE)
                 .orElse(null);
 
-        //if client not found , access denied
+        // if client not found , access denied
         if (client == null) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid API key");
             return;
         }
 
-        //create authenticated user (spring security)
+        // create authenticated user (spring security)
         var auth = new UsernamePasswordAuthenticationToken(
                 client.getId(), // principal (client id)
                 null,
-                List.of(new SimpleGrantedAuthority("ROLE_PARTNER"))
-        );
+                List.of(new SimpleGrantedAuthority("ROLE_PARTNER")));
 
-        //tells spring security , this user is trusted
+        // tells spring security , this user is trusted
         SecurityContextHolder.getContext().setAuthentication(auth);
         chain.doFilter(request, response);
     }
@@ -66,7 +70,8 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] digest = md.digest(value.getBytes(StandardCharsets.UTF_8));
             StringBuilder sb = new StringBuilder();
-            for (byte b : digest) sb.append(String.format("%02x", b));
+            for (byte b : digest)
+                sb.append(String.format("%02x", b));
             return sb.toString();
         } catch (Exception e) {
             throw new RuntimeException("SHA-256 not available", e);

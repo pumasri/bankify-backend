@@ -1,5 +1,5 @@
 package seniorproject.bankifycore.domain.enums;
 
 public enum ClientStatus {
-    ACTIVE,DISABLED;
+    ACTIVE,DISABLED, PENDING,REJECTED;
 }

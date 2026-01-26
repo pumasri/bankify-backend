@@ -27,9 +27,16 @@ public class ClientApp extends Auditable {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false,length = 16)
-    private ClientStatus status = ClientStatus.ACTIVE;
+    private ClientStatus status = ClientStatus.PENDING;
 
-    //store the hash of the api
-    @Column(name = "api_key_hash", nullable = false,unique = true,length = 128)
+    //store the hash of the api // nullable because pending have no key yet
+    @Column(name = "api_key_hash", nullable = true,unique = true,length = 128)
     private String apiKeyHash;
+
+    // optional metadata for review
+    @Column(name = "contact_email", nullable = true, length = 180)
+    private String contactEmail;
+
+    @Column(name = "callback_url", nullable = true, length = 500)
+    private String callbackUrl;
 }

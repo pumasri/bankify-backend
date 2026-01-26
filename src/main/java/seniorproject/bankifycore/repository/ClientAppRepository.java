@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import seniorproject.bankifycore.domain.ClientApp;
 import seniorproject.bankifycore.domain.enums.ClientStatus;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,4 +16,6 @@ public interface ClientAppRepository extends JpaRepository<ClientApp, UUID> {
     boolean existsByApiKeyHash(String apiKeyHash);
 
     Optional<ClientApp> findByApiKeyHash(String apiKeyHash);
+
+    List<ClientApp> findByStatus(ClientStatus status);
 }

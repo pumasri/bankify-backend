@@ -13,7 +13,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AdminController {
 
-
     private final AccountService accountService;
 
     @PatchMapping("/accounts/{accountId}/pin")
@@ -22,5 +21,6 @@ public class AdminController {
         accountService.resetPin(accountId, req);
     }
 
+    // @PostMapping("/clients/{id}/approve")
 
 }
