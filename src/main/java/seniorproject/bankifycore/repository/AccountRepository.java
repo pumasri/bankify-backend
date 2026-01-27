@@ -29,4 +29,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
 
     Optional<Account> findFirstByCustomer_IdAndStatus(UUID customerId, AccountStatus status);
 
+
+    boolean existsByClientApp_Id(UUID clientAppId);
+
 }
