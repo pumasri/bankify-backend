@@ -6,14 +6,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import seniorproject.bankifycore.domain.Account;
 import seniorproject.bankifycore.domain.ClientApp;
-import seniorproject.bankifycore.domain.enums.AccountStatus;
-import seniorproject.bankifycore.domain.enums.AccountType;
-import seniorproject.bankifycore.domain.enums.ClientStatus;
-import seniorproject.bankifycore.domain.enums.Currency;
+import seniorproject.bankifycore.domain.ClientKeyRotationRequest;
+import seniorproject.bankifycore.domain.enums.*;
+import seniorproject.bankifycore.dto.ApproveRotationResponse;
+import seniorproject.bankifycore.dto.RejectRotationResponse;
 import seniorproject.bankifycore.dto.admin.ApproveClientResponse;
 import seniorproject.bankifycore.dto.clientapp.ClientAppResponse;
 import seniorproject.bankifycore.repository.AccountRepository;
 import seniorproject.bankifycore.repository.ClientAppRepository;
+import seniorproject.bankifycore.repository.RotationRepository;
 import seniorproject.bankifycore.service.AccountService;
 import seniorproject.bankifycore.utils.ApiKeyUtils;
 
@@ -28,6 +29,7 @@ public class ClientAppService {
     private final ClientAppRepository clientAppRepo;
     private final AccountRepository accountRepo;
     private final AccountService accountService;
+    private final RotationRepository rotationRepo;
 
     @Value("${security.api-key.pepper:change-me}")
     private String pepper;
@@ -137,6 +139,57 @@ public class ClientAppService {
 
         return new ApproveClientResponse(app.getId(), app.getStatus().name(), apiKeyPlain);
     }
+
+    //Here is the method that will approve , Rotation for client
+    @Transactional
+    public ApproveRotationResponse approveRotation(UUID requestId) {
+        ClientKeyRotationRequest r = rotationRepo.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("Rotation request not found"));
+
+        if (r.getStatus() != RotationStatus.PENDING) {
+            throw new IllegalStateException("Rotation request is not pending");
+        }
+
+        ClientApp app = r.getClientApp();
+        if (app.getStatus() != ClientStatus.ACTIVE) {
+            throw new IllegalStateException("Client app is not active");
+        }
+
+        // Generate new key (plain once), store hash
+        String apiKeyPlain, apiKeyHash;
+        do {
+            apiKeyPlain = ApiKeyUtils.generateRawKey();
+            apiKeyHash = ApiKeyUtils.hash(apiKeyPlain, pepper);
+        } while (clientAppRepo.existsByApiKeyHash(apiKeyHash));
+
+        app.setApiKeyHash(apiKeyHash);
+        clientAppRepo.save(app);
+
+        r.setStatus(RotationStatus.APPROVED);
+        rotationRepo.save(r);
+
+        return new ApproveRotationResponse(r.getId(), app.getId(), r.getStatus().name(), apiKeyPlain);
+    }
+
+    @Transactional
+    public RejectRotationResponse reject(UUID requestId) {
+        ClientKeyRotationRequest r = rotationRepo.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("Rotation request not found"));
+
+        if (r.getStatus() != RotationStatus.PENDING) {
+            throw new IllegalStateException("Rotation request is not pending");
+        }
+
+        r.setStatus(RotationStatus.REJECTED);
+        rotationRepo.save(r);
+        return new RejectRotationResponse(r.getId(), r.getStatus().name());
+    }
+
+
+
+
+
+
 
     private ClientAppResponse toClientAppResponse(ClientApp client) {
         return new ClientAppResponse(

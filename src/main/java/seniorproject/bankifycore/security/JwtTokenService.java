@@ -26,6 +26,9 @@ public class JwtTokenService {
     @Value("${security.jwt.atm-expiration-seconds:180}")
     private long atmExpirationSeconds;
 
+    @Value("${security.jwt.partner-portal-expiration-seconds:3600}")
+    private long partnerPortalExpirationSeconds;
+
     private Key key;
 
     @PostConstruct
@@ -62,6 +65,23 @@ public class JwtTokenService {
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
+
+
+    public String generatePartnerPortalToken(UUID clientUserId, String email, String role) {
+        Instant now = Instant.now();
+        Instant expiry = now.plusSeconds(partnerPortalExpirationSeconds);
+
+        return Jwts.builder()
+                .setSubject(clientUserId.toString())
+                .claim("typ", "PARTNER_PORTAL")
+                .claim("email", email)
+                .claim("role", role) // OWNER / MEMBER
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(expiry))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
 
     public Claims parseToken(String token) {
         return Jwts.parserBuilder()
