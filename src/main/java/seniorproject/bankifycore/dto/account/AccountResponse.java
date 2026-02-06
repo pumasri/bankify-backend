@@ -8,13 +8,14 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record AccountResponse(
-        UUID id,
-        UUID customerId,
-        String accountNumber,
-        AccountType type,
-        String currency,
-        BigDecimal balance,
-        AccountStatus status,
-        Instant createdAt,
-        Instant updatedAt) {
+                UUID id,
+                UUID customerId,
+                UUID clientAppId,
+                String accountNumber,
+                AccountType type,
+                String currency,
+                BigDecimal balance,
+                AccountStatus status,
+                Instant createdAt,
+                Instant updatedAt) {
 }

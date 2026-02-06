@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import seniorproject.bankifycore.domain.Account;
+import seniorproject.bankifycore.domain.enums.AccountStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,4 +24,12 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select a from Account a where a.id = :id")
     Optional<Account>findByIdForUpdate(@Param("id") UUID id);
+
+    Optional<Account> findByClientApp_Id(UUID clientAppId);
+
+    Optional<Account> findFirstByCustomer_IdAndStatus(UUID customerId, AccountStatus status);
+
+
+    boolean existsByClientApp_Id(UUID clientAppId);
+
 }

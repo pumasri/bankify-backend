@@ -12,6 +12,8 @@ import seniorproject.bankifycore.domain.Customer;
 public interface CustomerRepository extends JpaRepository<Customer, UUID> {
 
     Optional<Customer> findByEmail(String email);
+
     boolean existsByEmail(String email);
 
+    // Optional<Customer> findByUser_Id(UUID userId);
 }

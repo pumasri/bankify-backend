@@ -4,8 +4,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import seniorproject.bankifycore.domain.Account;
+import seniorproject.bankifycore.domain.LedgerEntry;
 import seniorproject.bankifycore.domain.Transaction;
 import seniorproject.bankifycore.domain.enums.AccountStatus;
+import seniorproject.bankifycore.domain.enums.EntryDirection;
 import seniorproject.bankifycore.domain.enums.TransactionStatus;
 import seniorproject.bankifycore.domain.enums.TransactionType;
 import seniorproject.bankifycore.dto.transaction.DepositRequest;
@@ -13,9 +15,12 @@ import seniorproject.bankifycore.dto.transaction.TransactionResponse;
 import seniorproject.bankifycore.dto.transaction.TransferRequest;
 import seniorproject.bankifycore.dto.transaction.WithdrawRequest;
 import seniorproject.bankifycore.repository.AccountRepository;
+import seniorproject.bankifycore.repository.LedgerEntryRepository;
 import seniorproject.bankifycore.repository.TransactionRepository;
+import seniorproject.bankifycore.utils.ActorContext;
 
 import java.math.BigDecimal;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -25,6 +30,8 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepo;
     private final AccountRepository accountRepo;
+    private final LedgerEntryRepository ledgerEntryRepo;
+    private final AuditService auditService;
 
     @Transactional
     public TransactionResponse deposit(String idemKey, DepositRequest request) {
@@ -63,7 +70,19 @@ public class TransactionService {
 
         accountRepo.save(account);
         try {
-            transactionRepo.save(transaction);
+            Transaction saved = transactionRepo.save(transaction);
+
+            // ✅ audit only when NEW transaction is created
+            auditService.log(
+                    ActorContext.actorType(), ActorContext.actorId(),
+                    "TX_CREATED",
+                    "Transaction", saved.getId().toString(),
+                    "type=" + saved.getType()
+                            + ",amount=" + saved.getAmount()
+                            + ",ref=" + saved.getReference()
+                            + ",toAccountId=" + account.getId());
+
+            writeLedger(account, saved, EntryDirection.CREDIT, request.amount());
             return toResponse(transaction);
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             // race safe:if two requests with the same key hit at the same time
@@ -110,7 +129,20 @@ public class TransactionService {
 
         accountRepo.save(account);
         try {
-            transactionRepo.save(transaction);
+            Transaction saved = transactionRepo.save(transaction);
+
+            // audit log is done here
+            auditService.log(
+                    ActorContext.actorType(), ActorContext.actorId(),
+                    "TX_CREATED",
+                    "Transaction", saved.getId().toString(),
+                    "type=" + saved.getType()
+                            + ",amount=" + saved.getAmount()
+                            + ",ref=" + saved.getReference()
+                            + ",fromAccountId=" + account.getId());
+
+            // ledger record
+            writeLedger(account, saved, EntryDirection.DEBIT, request.amount());
             return toResponse(transaction);
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             return transactionRepo.findByReference(idemKey)
@@ -165,7 +197,25 @@ public class TransactionService {
         accountRepo.save(fromAccount);
         accountRepo.save(toAccount);
         try {
-            transactionRepo.save(transaction);
+            Transaction saved = transactionRepo.save(transaction);
+
+            // audit logs is saved here
+            auditService.log(
+                    ActorContext.actorType(),
+                    ActorContext.actorId(),
+                    "TX_CREATED",
+                    "Transaction",
+                    saved.getId().toString(),
+                    "type=" + saved.getType()
+                            + ",amount=" + saved.getAmount()
+                            + ",ref=" + saved.getReference()
+                            + ",fromAccountId=" + fromAccount.getId()
+                            + ",toAccountId=" + toAccount.getId());
+
+            // ledger record is done here
+            writeLedger(fromAccount, saved, EntryDirection.DEBIT, request.amount());
+            writeLedger(toAccount, saved, EntryDirection.CREDIT, request.amount());
+
             return toResponse(transaction);
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             return transactionRepo.findByReference(idemKey)
@@ -222,4 +272,17 @@ public class TransactionService {
                 transaction.getNote(),
                 transaction.getCreatedAt());
     }
+
+    // helper to write writeledger
+    private void writeLedger(Account account, Transaction transaction, EntryDirection dir, BigDecimal amount) {
+        ledgerEntryRepo.save(
+                LedgerEntry.builder()
+                        .account(account)
+                        .transaction(transaction)
+                        .direction(dir)
+                        .amount(amount)
+                        .currency(account.getCurrency())
+                        .build());
+    }
+
 }

@@ -1,6 +1,7 @@
 package seniorproject.bankifycore.web;
 
 import seniorproject.bankifycore.domain.User;
+import seniorproject.bankifycore.domain.enums.UserStatus;
 import seniorproject.bankifycore.repository.UserRepository;
 import seniorproject.bankifycore.security.JwtTokenService;
 import jakarta.validation.Valid;
@@ -33,7 +34,7 @@ public class AuthController {
         }
 
         User user = optionalUser.get();
-        if (user.getStatus() != User.Status.ACTIVE) {
+        if (user.getStatus() != UserStatus.ACTIVE) {
             return ResponseEntity.status(403).body("User is not active");
         }
 

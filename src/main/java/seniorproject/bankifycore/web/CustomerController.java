@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import seniorproject.bankifycore.dto.customer.CreateCustomerRequest;
@@ -22,11 +23,13 @@ public class CustomerController {
     private final CustomerService customerService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     public List<CustomerResponse> getCustomers() {
         return customerService.getCustomers();
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     public ResponseEntity<CustomerResponse> create(
             @Valid @RequestBody CreateCustomerRequest request) {
         CustomerResponse customer = customerService.create(request);
@@ -34,17 +37,24 @@ public class CustomerController {
     }
 
     @GetMapping("/{customerId}")
+    @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     public ResponseEntity<CustomerResponse> get(@PathVariable UUID customerId) {
         CustomerResponse customer = customerService.getCustomerById(customerId);
         return ResponseEntity.status(HttpStatus.OK).body(customer);
     }
 
-    @PatchMapping("/{accountId}")
-    public ResponseEntity<CustomerResponse> update(@PathVariable UUID accountId,
+    @PatchMapping("/{customerId}")
+    @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
+    public ResponseEntity<CustomerResponse> update(@PathVariable UUID customerId,
             @Valid @RequestBody UpdateCustomerRequest request) {
-
-        CustomerResponse updateCustomer = customerService.updateCustomer(accountId, request);
+        CustomerResponse updateCustomer = customerService.updateCustomer(customerId, request);
         return ResponseEntity.status(HttpStatus.OK).body(updateCustomer);
+    }
+
+    @PatchMapping("/{id}/disable")
+    @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
+    public CustomerResponse disable(@PathVariable UUID id) {
+        return customerService.disable(id);
     }
 
 }

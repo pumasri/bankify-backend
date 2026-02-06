@@ -31,18 +31,6 @@ public class CustomerService {
                 .toList();
     }
 
-    // helper that help Entity -> DTO
-    private CustomerResponse toResponse(Customer customer) {
-        return new CustomerResponse(
-                customer.getId(),
-                customer.getFirstName(),
-                customer.getLastName(),
-                customer.getEmail(),
-                customer.getPhoneNumber(),
-                customer.getType(),
-                customer.getStatus());
-    }
-
     // Create a customer
     @Transactional
     public CustomerResponse create(CreateCustomerRequest req) {
@@ -75,6 +63,7 @@ public class CustomerService {
                 () -> new IllegalArgumentException("Customer not found" + id));
     }
 
+    @Transactional
     public CustomerResponse updateCustomer(UUID id, UpdateCustomerRequest req) {
         Customer customer = byId(id);
 
@@ -97,6 +86,30 @@ public class CustomerService {
         Customer saved = customerRepo.save(customer);
 
         return toResponse(saved);
+    }
+
+    @Transactional
+    public CustomerResponse disable(UUID id) {
+        Customer customer = customerRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Customer cannot be disabled , because customer is not found"));
+
+        customer.setStatus(CustomerStatus.FROZEN);
+        customerRepo.save(customer);
+
+        return toResponse(customer);
+    }
+
+    // helper that help Entity -> DTO
+    private CustomerResponse toResponse(Customer customer) {
+        return new CustomerResponse(
+                customer.getId(),
+                customer.getFirstName(),
+                customer.getLastName(),
+                customer.getEmail(),
+                customer.getPhoneNumber(),
+                customer.getType(),
+                customer.getStatus());
     }
 
 }
