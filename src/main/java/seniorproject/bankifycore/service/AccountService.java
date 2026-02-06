@@ -16,6 +16,7 @@ import seniorproject.bankifycore.dto.account.UpdateAccountRequest;
 import seniorproject.bankifycore.dto.admin.ResetPinRequest;
 import seniorproject.bankifycore.repository.AccountRepository;
 import seniorproject.bankifycore.repository.CustomerRepository;
+import seniorproject.bankifycore.utils.ActorContext;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
@@ -29,6 +30,7 @@ public class AccountService {
     private final AccountRepository accountRepo;
     private final CustomerRepository customerRepo;
     private final PasswordEncoder passwordEncoder;
+    private final AuditService auditService;
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
@@ -139,6 +141,15 @@ public class AccountService {
         acc.setPinFailedAttempts(0);
         acc.setPinLockedUntil(null);
         accountRepo.save(acc);
+
+        //audit log is done here
+        auditService.log(
+                ActorContext.actorType(), ActorContext.actorId(),
+                "ACCOUNT_PIN_RESET",
+                "Account", accountId.toString(),
+                "reason=admin_reset"
+        );
+
     }
 
     // ----------------------- Helpers -------------------------

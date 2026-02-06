@@ -1,0 +1,211 @@
+### =========================
+### Setup
+### =========================
+@base = http://localhost:8080
+
+
+
+### =========================
+### Setup
+### =========================
+
+@adminJwt = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0NWFhOGJhMC00ZWNkLTRmNDktYTIyOC1jYjhiNzIzZTRmMjIiLCJ0eXAiOiJVU0VSIiwiZW1haWwiOiJhZG1pbkBiYW5raWZ5LmxvY2FsIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzcwMzkwNTY3LCJleHAiOjE3NzAzOTQxNjd9.D27gq2GM7cv8Vo_pEXmIo0hTNjuBAHyOFKB1Knh-j88
+
+# ATM login credentials
+@accountNumber = {{ATM_ACCOUNT_NUMBER}}
+@pin = {{ATM_PIN}}
+
+# A second account number for transfer (must exist)
+@toAccountNumber = 490630740426
+
+### =========================
+### 1) ATM Login -> ATM JWT
+### =========================
+# @name atmLogin
+POST {{base}}/api/atm/login
+Content-Type: application/json
+
+{
+  "accountNumber": "699510569499",
+  "pin": "654321"
+}
+
+> {%
+    client.global.set("atmJwt", response.body.token);
+%}
+
+### =========================
+### 2) ATM Deposit (TX_CREATED audit)
+### =========================
+POST {{base}}/api/atm/me/deposit
+Authorization: Bearer {{atmJwt}}
+Idempotency-Key: ATM-AUDIT-001
+Content-Type: application/json
+
+{
+  "amount": 9999,
+  "note": "atm audit deposit"
+}
+
+### =========================
+### 3) ATM Withdraw (TX_CREATED audit)
+### =========================
+POST {{base}}/api/atm/me/withdraw
+Authorization: Bearer {{atmJwt}}
+Idempotency-Key: ATM-AUDIT-002
+Content-Type: application/json
+
+{
+  "amount": 500,
+  "note": "atm audit withdraw"
+}
+
+### =========================
+### 4) ATM Transfer (TX_CREATED audit)
+### =========================
+POST {{base}}/api/atm/me/transfer
+Authorization: Bearer {{atmJwt}}
+Idempotency-Key: ATM-AUDIT-003
+Content-Type: application/json
+
+{
+  "toAccountNumber": "{{toAccountNumber}}",
+  "amount": 2500,
+  "note": "atm audit transfer"
+}
+
+### =========================
+### 5) Retry same deposit (should NOT create new audit row)
+### =========================
+POST {{base}}/api/atm/me/deposit
+Authorization: Bearer {{atmJwt}}
+Idempotency-Key: ATM-AUDIT-005
+Content-Type: application/json
+
+{
+  "amount": 1000,
+  "note": "atm audit deposit"
+}
+
+### =========================
+### 6) Read audit logs (verify ATM actions)
+### =========================
+GET {{base}}/api/admin/audit-logs?action=TX_CREATED
+Authorization: Bearer {{adminJwt}}
+
+
+### =========================
+### 4) Admin Login to get jwt
+### =========================
+### Admin Login
+# @name adminLogin
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@bankify.local",
+  "password": "admin123"
+}
+> {%
+    client.global.set("adminJwt", response.body.token);
+%}
+
+
+### =========================
+### 1) List ALL audit logs
+### =========================
+GET {{base}}/api/admin/audit-logs
+Authorization: Bearer {{adminJwt}}
+
+### =========================
+### 2) Filter by action (TX_CREATED)
+### =========================
+GET {{base}}/api/admin/audit-logs?action=TX_CREATED
+Authorization: Bearer {{adminJwt}}
+
+### =========================
+### 3) Filter by actor type (USER)
+### =========================
+GET {{base}}/api/admin/audit-logs?actorType=USER
+Authorization: Bearer {{adminJwt}}
+
+### =========================
+### 4) Filter by actor type + action
+### =========================
+GET {{base}}/api/admin/audit-logs?actorType=USER&action=CLIENT_APPROVED
+Authorization: Bearer {{adminJwt}}
+
+
+### =========================
+### Setup
+### =========================
+
+@partnerApiKey = {{PARTNER_API_KEY_HERE}}
+
+# replace with real account IDs
+@accountA = {{ACCOUNT_ID_A}}
+@accountB = {{ACCOUNT_ID_B}}
+
+### =========================
+### 1) Deposit (creates TX_CREATED)
+### =========================
+POST {{base}}/api/partner/me/deposit
+X-API-Key: {{partnerApiKey}}
+Idempotency-Key: TXN-AUDIT-001
+Content-Type: application/json
+
+{
+  "accountId": "{{accountA}}",
+  "amount": 100,
+  "note": "audit test deposit"
+}
+
+### =========================
+### 2) Withdraw (creates TX_CREATED)
+### =========================
+POST {{base}}/api/partner/me/withdraw
+X-API-Key: {{partnerApiKey}}
+Idempotency-Key: TXN-AUDIT-002
+Content-Type: application/json
+
+{
+  "accountId": "{{accountA}}",
+  "amount": 50,
+  "note": "audit test withdraw"
+}
+
+### =========================
+### 3) Transfer (creates TX_CREATED)
+### =========================
+POST {{base}}/api/partner/me/transfer
+X-API-Key: {{partnerApiKey}}
+Idempotency-Key: TXN-AUDIT-003
+Content-Type: application/json
+
+{
+  "fromAccountId": "{{accountA}}",
+  "toAccountId": "{{accountB}}",
+  "amount": 25,
+  "note": "audit test transfer"
+}
+
+### =========================
+### 4) Retry same deposit (NO new audit log)
+### =========================
+POST {{base}}/api/partner/me/deposit
+X-API-Key: {{partnerApiKey}}
+Idempotency-Key: TXN-AUDIT-001
+Content-Type: application/json
+
+{
+  "accountId": "{{accountA}}",
+  "amount": 100,
+  "note": "audit test deposit"
+}
+
+### =========================
+### 5) Read audit logs (verify)
+### =========================
+GET {{base}}/api/admin/audit-logs?action=TX_CREATED
+Authorization: Bearer {{adminJwt}}
+

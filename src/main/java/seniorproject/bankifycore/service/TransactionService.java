@@ -2,8 +2,6 @@ package seniorproject.bankifycore.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import seniorproject.bankifycore.domain.Account;
 import seniorproject.bankifycore.domain.LedgerEntry;
@@ -19,6 +17,7 @@ import seniorproject.bankifycore.dto.transaction.WithdrawRequest;
 import seniorproject.bankifycore.repository.AccountRepository;
 import seniorproject.bankifycore.repository.LedgerEntryRepository;
 import seniorproject.bankifycore.repository.TransactionRepository;
+import seniorproject.bankifycore.utils.ActorContext;
 
 import java.math.BigDecimal;
 
@@ -32,6 +31,7 @@ public class TransactionService {
     private final TransactionRepository transactionRepo;
     private final AccountRepository accountRepo;
     private final LedgerEntryRepository ledgerEntryRepo;
+    private final AuditService auditService;
 
     @Transactional
     public TransactionResponse deposit(String idemKey, DepositRequest request) {
@@ -71,6 +71,17 @@ public class TransactionService {
         accountRepo.save(account);
         try {
             Transaction saved = transactionRepo.save(transaction);
+
+            // ✅ audit only when NEW transaction is created
+            auditService.log(
+                    ActorContext.actorType(), ActorContext.actorId(),
+                    "TX_CREATED",
+                    "Transaction", saved.getId().toString(),
+                    "type=" + saved.getType()
+                            + ",amount=" + saved.getAmount()
+                            + ",ref=" + saved.getReference()
+                            + ",toAccountId=" + account.getId());
+
             writeLedger(account, saved, EntryDirection.CREDIT, request.amount());
             return toResponse(transaction);
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
@@ -119,6 +130,18 @@ public class TransactionService {
         accountRepo.save(account);
         try {
             Transaction saved = transactionRepo.save(transaction);
+
+            // audit log is done here
+            auditService.log(
+                    ActorContext.actorType(), ActorContext.actorId(),
+                    "TX_CREATED",
+                    "Transaction", saved.getId().toString(),
+                    "type=" + saved.getType()
+                            + ",amount=" + saved.getAmount()
+                            + ",ref=" + saved.getReference()
+                            + ",fromAccountId=" + account.getId());
+
+            // ledger record
             writeLedger(account, saved, EntryDirection.DEBIT, request.amount());
             return toResponse(transaction);
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
@@ -175,6 +198,20 @@ public class TransactionService {
         accountRepo.save(toAccount);
         try {
             Transaction saved = transactionRepo.save(transaction);
+
+            // audit logs is saved here
+            auditService.log(
+                    ActorContext.actorType(),
+                    ActorContext.actorId(),
+                    "TX_CREATED",
+                    "Transaction",
+                    saved.getId().toString(),
+                    "type=" + saved.getType()
+                            + ",amount=" + saved.getAmount()
+                            + ",ref=" + saved.getReference()
+                            + ",fromAccountId=" + fromAccount.getId()
+                            + ",toAccountId=" + toAccount.getId());
+
             // ledger record is done here
             writeLedger(fromAccount, saved, EntryDirection.DEBIT, request.amount());
             writeLedger(toAccount, saved, EntryDirection.CREDIT, request.amount());
@@ -187,8 +224,6 @@ public class TransactionService {
         }
 
     }
-
-
 
     // idempotencyCheck method helper
     private TransactionResponse returnExistingIfDuplicate(String idemKey) {

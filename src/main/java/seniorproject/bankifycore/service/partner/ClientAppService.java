@@ -16,6 +16,8 @@ import seniorproject.bankifycore.repository.AccountRepository;
 import seniorproject.bankifycore.repository.ClientAppRepository;
 import seniorproject.bankifycore.repository.RotationRepository;
 import seniorproject.bankifycore.service.AccountService;
+import seniorproject.bankifycore.service.AuditService;
+import seniorproject.bankifycore.utils.ActorContext;
 import seniorproject.bankifycore.utils.ApiKeyUtils;
 
 import java.math.BigDecimal;
@@ -30,6 +32,8 @@ public class ClientAppService {
     private final AccountRepository accountRepo;
     private final AccountService accountService;
     private final RotationRepository rotationRepo;
+    private final AuditService auditService;
+
 
     @Value("${security.api-key.pepper:change-me}")
     private String pepper;
@@ -95,6 +99,16 @@ public class ClientAppService {
         client.setStatus(ClientStatus.DISABLED);
         clientAppRepo.save(client);
 
+
+        //audit log is generated here
+        auditService.log(
+                ActorContext.actorType(), ActorContext.actorId(),
+                "CLIENT_DISABLED",
+                "ClientApp", client.getId().toString(),
+                "status=" + client.getStatus().name()
+        );
+
+
         return toClientAppResponse(client);
     }
 
@@ -136,6 +150,14 @@ public class ClientAppService {
         }
 
         clientAppRepo.save(app);
+
+        //audit log is generated here
+        auditService.log(
+                ActorContext.actorType(), ActorContext.actorId(),
+                "CLIENT_APPROVED",
+                "ClientApp", app.getId().toString(),
+                "status=" + app.getStatus().name()
+        );
 
         return new ApproveClientResponse(app.getId(), app.getStatus().name(), apiKeyPlain);
     }
