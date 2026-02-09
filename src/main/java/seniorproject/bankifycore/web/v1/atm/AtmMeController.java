@@ -1,4 +1,4 @@
-package seniorproject.bankifycore.web.atm;
+package seniorproject.bankifycore.web.v1.atm;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,7 +53,7 @@ public class AtmMeController {
         return atmMeService.transfer(idemKey, req);
     }
 
-    @PostMapping("/pin")
+    @PostMapping("/change-pin")
     public void changePin(@RequestBody AtmChangePinRequest req) {
         atmMeService.changePin(req);
     }

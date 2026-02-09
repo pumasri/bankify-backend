@@ -1,4 +1,4 @@
-package seniorproject.bankifycore.web;
+package seniorproject.bankifycore.web.v1;
 
 import seniorproject.bankifycore.domain.User;
 import seniorproject.bankifycore.domain.enums.UserStatus;

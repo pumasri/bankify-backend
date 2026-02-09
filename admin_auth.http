@@ -1,0 +1,22 @@
+@base = http://localhost:8080
+
+### Admin login -> USER JWT
+# @name adminLogin
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@bankify.local",
+  "password": "admin123"
+}
+
+> {%
+    client.global.set("adminJwt", response.body.token);
+%}
+
+
+
+
+
+
+

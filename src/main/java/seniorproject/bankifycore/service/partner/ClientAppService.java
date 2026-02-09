@@ -8,10 +8,10 @@ import seniorproject.bankifycore.domain.Account;
 import seniorproject.bankifycore.domain.ClientApp;
 import seniorproject.bankifycore.domain.ClientKeyRotationRequest;
 import seniorproject.bankifycore.domain.enums.*;
-import seniorproject.bankifycore.dto.ApproveRotationResponse;
-import seniorproject.bankifycore.dto.RejectRotationResponse;
 import seniorproject.bankifycore.dto.admin.ApproveClientResponse;
 import seniorproject.bankifycore.dto.clientapp.ClientAppResponse;
+import seniorproject.bankifycore.dto.rotation.ApproveRotationResponse;
+import seniorproject.bankifycore.dto.rotation.RejectRotationResponse;
 import seniorproject.bankifycore.repository.AccountRepository;
 import seniorproject.bankifycore.repository.ClientAppRepository;
 import seniorproject.bankifycore.repository.RotationRepository;
@@ -33,7 +33,6 @@ public class ClientAppService {
     private final AccountService accountService;
     private final RotationRepository rotationRepo;
     private final AuditService auditService;
-
 
     @Value("${security.api-key.pepper:change-me}")
     private String pepper;
@@ -99,15 +98,12 @@ public class ClientAppService {
         client.setStatus(ClientStatus.DISABLED);
         clientAppRepo.save(client);
 
-
-        //audit log is generated here
+        // audit log is generated here
         auditService.log(
                 ActorContext.actorType(), ActorContext.actorId(),
                 "CLIENT_DISABLED",
                 "ClientApp", client.getId().toString(),
-                "status=" + client.getStatus().name()
-        );
-
+                "status=" + client.getStatus().name());
 
         return toClientAppResponse(client);
     }
@@ -151,18 +147,17 @@ public class ClientAppService {
 
         clientAppRepo.save(app);
 
-        //audit log is generated here
+        // audit log is generated here
         auditService.log(
                 ActorContext.actorType(), ActorContext.actorId(),
                 "CLIENT_APPROVED",
                 "ClientApp", app.getId().toString(),
-                "status=" + app.getStatus().name()
-        );
+                "status=" + app.getStatus().name());
 
         return new ApproveClientResponse(app.getId(), app.getStatus().name(), apiKeyPlain);
     }
 
-    //Here is the method that will approve , Rotation for client
+    // Here is the method that will approve , Rotation for client
     @Transactional
     public ApproveRotationResponse approveRotation(UUID requestId) {
         ClientKeyRotationRequest r = rotationRepo.findById(requestId)
@@ -206,12 +201,6 @@ public class ClientAppService {
         rotationRepo.save(r);
         return new RejectRotationResponse(r.getId(), r.getStatus().name());
     }
-
-
-
-
-
-
 
     private ClientAppResponse toClientAppResponse(ClientApp client) {
         return new ClientAppResponse(

@@ -1,4 +1,4 @@
-package seniorproject.bankifycore.web;
+package seniorproject.bankifycore.web.v1;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import seniorproject.bankifycore.dto.account.AccountResponse;
 import seniorproject.bankifycore.dto.account.CreateAccountRequest;
 import seniorproject.bankifycore.dto.account.UpdateAccountRequest;
-import seniorproject.bankifycore.dto.clientapp.ClientAppResponse;
 import seniorproject.bankifycore.dto.ledger.LedgerEntryResponse;
 import seniorproject.bankifycore.service.AccountService;
 import seniorproject.bankifycore.service.LedgerService;
@@ -15,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/accounts")
+@RequestMapping("/api/admin/accounts")
 @RequiredArgsConstructor
 public class AccountController {
 
@@ -61,6 +60,5 @@ public class AccountController {
     public AccountResponse disable(@PathVariable UUID id) {
         return accountService.disable(id);
     }
-
 
 }

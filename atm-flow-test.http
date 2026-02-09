@@ -1,0 +1,62 @@
+@base = http://localhost:8080
+
+@accountNumber = {{ATM_ACCOUNT_NUMBER}}
+@pin = {{ATM_PIN}}
+@newPin = 4321
+
+### ATM login -> ATM JWT
+# @name atmLogin
+POST {{base}}/api/atm/login
+Content-Type: application/json
+
+{
+  "accountNumber": "{{accountNumber}}",
+  "pin": "{{pin}}"
+}
+
+> {%
+    client.global.set("atmJwt", response.body.token);
+%}
+
+### ATM balance
+GET {{base}}/api/atm/me/balance
+Authorization: Bearer {{atmJwt}}
+
+### ATM deposit
+POST {{base}}/api/atm/me/deposit
+Authorization: Bearer {{atmJwt}}
+Idempotency-Key: TXN-ATM-001
+Content-Type: application/json
+
+{
+  "amount": 100,
+  "note": "atm deposit"
+}
+
+### ATM change pin (adjust path if yours differs)
+POST {{base}}/api/atm/me/pin
+Authorization: Bearer {{atmJwt}}
+Content-Type: application/json
+
+{
+  "oldPin": "{{pin}}",
+  "newPin": "{{newPin}}"
+}
+
+### Login with old pin (should fail)
+POST {{base}}/api/atm/login
+Content-Type: application/json
+
+{
+  "accountNumber": "{{accountNumber}}",
+  "pin": "{{pin}}"
+}
+
+### Login with new pin (should work)
+POST {{base}}/api/atm/login
+Content-Type: application/json
+
+{
+  "accountNumber": "{{accountNumber}}",
+  "pin": "{{newPin}}"
+}

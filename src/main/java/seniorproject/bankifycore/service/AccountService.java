@@ -97,6 +97,14 @@ public class AccountService {
 
         Account saved = accountRepo.save(account);
 
+        //audit log is done here
+        auditService.log(
+                ActorContext.actorType(), ActorContext.actorId(),
+                "ACCOUNT_UPDATED",
+                "Account", account.getId().toString(),
+                "reason=admin_"+req.status()
+        );
+
         return toResponse(saved);
     }
 
@@ -109,6 +117,14 @@ public class AccountService {
         account.setStatus(AccountStatus.FROZEN);
         accountRepo.save(account);
 
+
+        //audit log is done here
+        auditService.log(
+                ActorContext.actorType(), ActorContext.actorId(),
+                "ACCOUNT_DISABLED",
+                "Account", account.getId().toString(),
+                "reason=admin_disable"
+        );
         return toResponse(account);
     }
 

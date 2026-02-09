@@ -1,4 +1,4 @@
-package seniorproject.bankifycore.web.partner;
+package seniorproject.bankifycore.web.v1.partner;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -26,27 +26,22 @@ public class PartnerMeController {
     @PostMapping("/transfer")
     public TransactionResponse transfer(
             @RequestHeader("Idempotency-Key") String idemKey,
-            @RequestBody PartnerTransferRequest req
-    ) {
+            @RequestBody PartnerTransferRequest req) {
         return partnerMeService.transfer(idemKey, req);
     }
 
     @PostMapping("/withdraw")
     public TransactionResponse withdraw(
             @RequestHeader("Idempotency-Key") String idemKey,
-            @RequestBody PartnerWithdrawRequest req
-    ) {
+            @RequestBody PartnerWithdrawRequest req) {
         return partnerMeService.withdraw(idemKey, req);
     }
 
     @PostMapping("/deposit")
     public TransactionResponse deposit(
             @RequestHeader("Idempotency-Key") String idemKey,
-            @RequestBody PartnerDepositRequest req
-    ) {
+            @RequestBody PartnerDepositRequest req) {
         return partnerMeService.deposit(idemKey, req);
     }
-
-
 
 }

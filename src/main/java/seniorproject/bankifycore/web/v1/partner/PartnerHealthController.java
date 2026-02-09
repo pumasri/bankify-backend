@@ -1,4 +1,4 @@
-package seniorproject.bankifycore.web.partner;
+package seniorproject.bankifycore.web.v1.partner;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

@@ -27,6 +27,7 @@ public class AtmJwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
+
         String header = request.getHeader("Authorization");
         if (header == null || !header.startsWith("Bearer ")) {
             chain.doFilter(request, response);
@@ -38,7 +39,9 @@ public class AtmJwtAuthenticationFilter extends OncePerRequestFilter {
             Claims claims = jwtTokenService.parseToken(token);
 
             if (!jwtTokenService.isAtmToken(claims)) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Not an ATM token");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\":\"UNAUTHORIZED\",\"message\":\"Invalid token\"}");
                 return;
             }
 
@@ -54,7 +57,12 @@ public class AtmJwtAuthenticationFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
 
         } catch (Exception e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
+            e.printStackTrace(); // TEMP for debugging
+
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"UNAUTHORIZED\",\"message\":\"Invalid token\"}");
+            return;
         }
     }
 

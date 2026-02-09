@@ -1,14 +1,15 @@
-package seniorproject.bankifycore.web;
+package seniorproject.bankifycore.web.v1;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import seniorproject.bankifycore.dto.ApproveRotationResponse;
+
 import seniorproject.bankifycore.dto.AuditLogResponse;
-import seniorproject.bankifycore.dto.RejectRotationResponse;
 import seniorproject.bankifycore.dto.admin.ApproveClientResponse;
 import seniorproject.bankifycore.dto.admin.ResetPinRequest;
 import seniorproject.bankifycore.dto.clientapp.ClientAppResponse;
+import seniorproject.bankifycore.dto.rotation.ApproveRotationResponse;
+import seniorproject.bankifycore.dto.rotation.RejectRotationResponse;
 import seniorproject.bankifycore.service.AccountService;
 import seniorproject.bankifycore.service.AuditService;
 import seniorproject.bankifycore.service.partner.ClientAppService;
@@ -31,7 +32,7 @@ public class AdminController {
         accountService.resetPin(accountId, req);
     }
 
-    //Clients
+    // Clients
     @GetMapping("/clients")
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     public List<ClientAppResponse> listClients() {
@@ -44,14 +45,14 @@ public class AdminController {
         return clientAppService.disable(id);
     }
 
-    //approve API for client first time creating account
+    // approve API for client first time creating account
     @PatchMapping("/clients/{id}/approve")
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     public ApproveClientResponse approve(@PathVariable UUID id) {
         return clientAppService.approve(id);
     }
 
-    //approving api rotation for client
+    // approving api rotation for client
     @PatchMapping("/clients/rotation-requests/{id}/approve")
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     public ApproveRotationResponse approveRotation(@PathVariable UUID id) {
@@ -64,17 +65,12 @@ public class AdminController {
         return clientAppService.reject(id);
     }
 
-
-
     @GetMapping("/audit-logs")
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     public List<AuditLogResponse> listAuditLog(
             @RequestParam(required = false) String actorType,
-            @RequestParam(required = false) String action
-    ) {
-        return auditService.list(actorType,action);
+            @RequestParam(required = false) String action) {
+        return auditService.list(actorType, action);
     }
-
-
 
 }

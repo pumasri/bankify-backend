@@ -1,0 +1,122 @@
+@base = http://localhost:8080
+
+
+
+### Admin login -> USER JWT
+# @name adminLogin
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@bankify.local",
+  "password": "admin123"
+}
+
+> {%
+    client.global.set("adminJwt", response.body.token);
+%}
+
+
+### Create customer (ADMIN)
+# @name createCustomer
+POST {{base}}/api/admin/customers
+Authorization: Bearer {{adminJwt}}
+Content-Type: application/json
+
+{
+  "firstName": "ATM",
+  "lastName": "User",
+  "email": "atm.user+{{randomInt}}@demo.com",
+  "phone": "0812345678"
+}
+
+> {%
+    client.global.set("customerId", response.body.id ?? response.body.customerId);
+%}
+
+### Create account (ADMIN)
+# @name createAccount
+POST {{base}}/api/admin/accounts
+Authorization: Bearer {{adminJwt}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "type": "CURRENT",
+  "currency": "THB",
+  "initialDeposit": 0
+}
+
+> {%
+    client.global.set("accountId", response.body.id ?? response.body.accountId);
+    client.global.set("accountNumber", response.body.accountNumber);
+%}
+
+### Reset PIN (ADMIN) -> set a known pin for testing
+@newPin = 1234
+PATCH {{base}}/api/admin/accounts/{{accountId}}/pin
+Authorization: Bearer {{adminJwt}}
+Content-Type: application/json
+
+{
+  "newPin": "{{newPin}}"
+}
+
+
+
+
+
+
+
+### Admin handle clients here
+### List clients
+GET {{base}}/api/admin/clients
+Authorization: Bearer {{adminJwt}}
+
+### Approve client -> returns API key once
+# @name approveClient
+PATCH {{base}}/api/admin/clients/{{clientAppId}}/approve
+Authorization: Bearer {{adminJwt}}
+
+> {%
+    client.global.set("partnerApiKey", response.body.apiKey);
+%}
+
+### Disable client
+PATCH {{base}}/api/admin/clients/{{clientAppId}}/disable
+Authorization: Bearer {{adminJwt}}
+
+
+
+
+
+
+### Admin approves rotation -> returns new API key once
+# @name approveRotation
+PATCH {{base}}/api/admin/clients/rotation-requests/{{rotationRequestId}}/approve
+Authorization: Bearer {{adminJwt}}
+
+> {%
+    client.global.set("partnerApiKey2", response.body.apiKey);
+%}
+
+
+
+
+
+
+
+
+
+
+### All audit logs
+GET {{base}}/api/admin/audit-logs
+Authorization: Bearer {{adminJwt}}
+
+### Only TX_CREATED
+GET {{base}}/api/admin/audit-logs?action=TX_CREATED
+Authorization: Bearer {{adminJwt}}
+
+### Only USER actor type
+GET {{base}}/api/admin/audit-logs?actorType=USER
+Authorization: Bearer {{adminJwt}}

@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import seniorproject.bankifycore.security.RateLimitService;
 
 @Configuration
 @RequiredArgsConstructor
@@ -23,9 +24,17 @@ public class SecurityConfig {
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
         private final ClientAppRepository clientAppRepository;
         private final JwtTokenService jwtTokenService; // for portal jwt filter too
+        private final RateLimitService rateLimitService;
+
 
         @Value("${security.api-key.pepper:change-me}")
         private String apiKeyPepper;
+
+        @Value("${security.ratelimit.partner.perMinute:60}")
+        private long partnerLimitPerMin;
+
+        @Value("${security.ratelimit.atm.perMinute:30}")
+        private long atmLimitPerMin;
 
         // 1) Partner AUTH (public): signup + login
         @Bean @Order(1)
@@ -47,6 +56,11 @@ public class SecurityConfig {
                         .addFilterBefore(
                                 new ApiKeyAuthenticationFilter(clientAppRepository, apiKeyPepper),
                                 UsernamePasswordAuthenticationFilter.class
+                        )
+                        // rate limit AFTER api-key auth so principal (clientAppId) exists
+                        .addFilterAfter(
+                                new RateLimitFilter(rateLimitService, partnerLimitPerMin, "partner"),
+                                ApiKeyAuthenticationFilter.class
                         );
                 return http.build();
         }
@@ -76,7 +90,13 @@ public class SecurityConfig {
                                 .anyRequest().hasRole("ATM")
                         )
                         .addFilterBefore(new AtmJwtAuthenticationFilter(jwtTokenService),
-                                UsernamePasswordAuthenticationFilter.class);
+                                UsernamePasswordAuthenticationFilter.class)
+
+                        // rate limit AFTER atm auth so principal exists
+                        .addFilterAfter(
+                                new RateLimitFilter(rateLimitService, atmLimitPerMin, "atm"),
+                                AtmJwtAuthenticationFilter.class
+                        );
                 return http.build();
         }
 
@@ -86,7 +106,7 @@ public class SecurityConfig {
                 http.csrf(csrf -> csrf.disable())
                         .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                         .authorizeHttpRequests(auth -> auth
-                                .requestMatchers("/api/health", "/auth/login").permitAll()
+                                .requestMatchers("/error","/api/health", "/auth/login").permitAll()
                                 .anyRequest().authenticated()
                         )
                         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

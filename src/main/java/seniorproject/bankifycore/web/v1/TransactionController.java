@@ -1,4 +1,4 @@
-package seniorproject.bankifycore.web;
+package seniorproject.bankifycore.web.v1;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -23,10 +23,8 @@ public class TransactionController {
     @PostMapping("/deposit")
     public TransactionResponse deposit(
             @RequestHeader("Idempotency-Key") String idemKey,
-            @RequestBody DepositRequest depositRequest
-            )
-    {
-        return transactionService.deposit(idemKey,depositRequest);
+            @RequestBody DepositRequest depositRequest) {
+        return transactionService.deposit(idemKey, depositRequest);
     }
 
     // What: withdraw money from an account
@@ -34,9 +32,8 @@ public class TransactionController {
     @PostMapping("/withdraw")
     public TransactionResponse withdraw(
             @RequestHeader("Idempotency-Key") String idemKey,
-            @RequestBody WithdrawRequest withdrawRequest)
-    {
-        return transactionService.withdraw(idemKey,withdrawRequest);
+            @RequestBody WithdrawRequest withdrawRequest) {
+        return transactionService.withdraw(idemKey, withdrawRequest);
     }
 
     // What: transfer money between accounts
@@ -44,9 +41,8 @@ public class TransactionController {
     @PostMapping("/transfer")
     public TransactionResponse transfer(
             @RequestHeader("Idempotency-Key") String idemKey,
-            @RequestBody TransferRequest transferRequest)
-    {
-        return transactionService.transfer(idemKey,transferRequest);
+            @RequestBody TransferRequest transferRequest) {
+        return transactionService.transfer(idemKey, transferRequest);
     }
 
     // What: list transactions for history/testing
@@ -64,4 +60,3 @@ public class TransactionController {
     }
 
 }
-

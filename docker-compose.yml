@@ -28,7 +28,7 @@ services:
     image: redis:7
     container_name: bankify-redis
     ports:
-      - "6379:6479"
+      - "6379:6379"
 
   rabbitmq:
     image: rabbitmq:3-management

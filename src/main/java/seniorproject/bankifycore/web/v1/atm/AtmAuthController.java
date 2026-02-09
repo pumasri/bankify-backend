@@ -1,4 +1,4 @@
-package seniorproject.bankifycore.web.atm;
+package seniorproject.bankifycore.web.v1.atm;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

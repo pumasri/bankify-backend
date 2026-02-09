@@ -40,12 +40,14 @@ public class AtmAuthService {
 
     @Transactional
     public AtmLoginResponse login(AtmLoginRequest req) {
+
         var acc = accountRepo.findByAccountNumber(req.accountNumber())
-                .orElseThrow(() -> new IllegalArgumentException("nvalid credentials"));
+                .orElseThrow(() -> new IllegalArgumentException("Account number not found"));
+
 
         // block partner accounts from ATM
         if (acc.getClientApp() != null) {
-            throw new IllegalArgumentException("nvalid credentials");
+            throw new IllegalArgumentException("Partners are not allowed to use atm");
         }
 
         // lockout check (optional)
@@ -59,7 +61,7 @@ public class AtmAuthService {
                 acc.setPinLockedUntil(Instant.now().plusSeconds(300)); // 5 min
                 acc.setPinFailedAttempts(0);
             }
-            throw new IllegalArgumentException("Invalid credentials");
+            throw new IllegalArgumentException("Password is incorrect");
         }
 
         // success: reset counters

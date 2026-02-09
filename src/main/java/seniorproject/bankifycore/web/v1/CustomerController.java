@@ -1,4 +1,4 @@
-package seniorproject.bankifycore.web;
+package seniorproject.bankifycore.web.v1;
 
 import java.util.List;
 import java.util.UUID;
