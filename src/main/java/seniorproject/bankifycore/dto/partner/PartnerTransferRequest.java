@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public record PartnerTransferRequest(
-        UUID toAccountId,
+        String accountNumber,
         BigDecimal amount,
         String note
 ) {

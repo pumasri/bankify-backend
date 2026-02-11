@@ -3,6 +3,7 @@ package seniorproject.bankifycore.web.v1;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import seniorproject.bankifycore.consants.ApiPaths;
 import seniorproject.bankifycore.dto.account.AccountResponse;
 import seniorproject.bankifycore.dto.account.CreateAccountRequest;
 import seniorproject.bankifycore.dto.account.UpdateAccountRequest;
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/admin/accounts")
+@RequestMapping(ApiPaths.ACCOUNTS)
 @RequiredArgsConstructor
 public class AccountController {
 

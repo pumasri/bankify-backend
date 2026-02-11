@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import seniorproject.bankifycore.consants.ApiPaths;
 import seniorproject.bankifycore.dto.AuditLogResponse;
 import seniorproject.bankifycore.dto.admin.ApproveClientResponse;
 import seniorproject.bankifycore.dto.admin.ResetPinRequest;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping(ApiPaths.ADMIN)
 @RequiredArgsConstructor
 public class AdminController {
 
@@ -26,6 +27,8 @@ public class AdminController {
     private final ClientAppService clientAppService;
     private final AuditService auditService;
 
+
+    //reset pin
     @PatchMapping("/accounts/{accountId}/pin")
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     public void resetPin(@PathVariable UUID accountId, @RequestBody ResetPinRequest req) {
@@ -39,11 +42,22 @@ public class AdminController {
         return clientAppService.list();
     }
 
+    //disabling the account
     @PatchMapping("/clients/{id}/disable")
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     public ClientAppResponse disable(@PathVariable UUID id) {
         return clientAppService.disable(id);
     }
+
+    //activating the account
+    @PatchMapping("/clients/{id}/activate")
+    @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
+    public ClientAppResponse activate(@PathVariable UUID id) {
+        return clientAppService.activate(id);
+    }
+
+
+
 
     // approve API for client first time creating account
     @PatchMapping("/clients/{id}/approve")

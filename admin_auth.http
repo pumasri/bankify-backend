@@ -1,8 +1,8 @@
 @base = http://localhost:8080
 
-### Admin login -> USER JWT
+### Admin login -> adminJwt
 # @name adminLogin
-POST {{base}}/auth/login
+POST {{base}}/api/v1/admin/auth/login
 Content-Type: application/json
 
 {

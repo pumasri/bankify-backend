@@ -210,4 +210,20 @@ public class ClientAppService {
                 client.getCreatedAt());
     }
 
+    public ClientAppResponse activate(UUID id) {
+        ClientApp client = clientAppRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("ClientApp not found"));
+
+        client.setStatus(ClientStatus.ACTIVE);
+        clientAppRepo.save(client);
+
+        // audit log is generated here
+        auditService.log(
+                ActorContext.actorType(), ActorContext.actorId(),
+                "CLIENT_ACTIVATED",
+                "ClientApp", client.getId().toString(),
+                "status=" + client.getStatus().name());
+
+        return toClientAppResponse(client);
+    }
 }

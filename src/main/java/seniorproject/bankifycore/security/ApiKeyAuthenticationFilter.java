@@ -9,6 +9,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+import seniorproject.bankifycore.consants.ApiPaths;
 import seniorproject.bankifycore.domain.enums.ClientStatus;
 import seniorproject.bankifycore.repository.ClientAppRepository;
 
@@ -25,12 +26,13 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getRequestURI().startsWith("/api/partner/me/");
+        return !request.getRequestURI().startsWith(ApiPaths.PARTNER +"/me");
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
+
 
         // read api key from http header
         String apiKey = request.getHeader("X-API-Key");

@@ -12,6 +12,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import seniorproject.bankifycore.consants.ApiPaths;
 
 import java.io.IOException;
 import java.util.List;
@@ -68,7 +69,7 @@ public class AtmJwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getRequestURI().startsWith("/api/atm/");
+        return !request.getRequestURI().startsWith(ApiPaths.ATM);
     }
 
 

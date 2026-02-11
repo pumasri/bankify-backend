@@ -3,6 +3,7 @@ package seniorproject.bankifycore.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import seniorproject.bankifycore.consants.ApiPaths;
 import seniorproject.bankifycore.repository.ClientAppRepository;
 import seniorproject.bankifycore.security.*;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +40,7 @@ public class SecurityConfig {
         // 1) Partner AUTH (public): signup + login
         @Bean @Order(1)
         public SecurityFilterChain partnerAuthChain(HttpSecurity http) throws Exception {
-                http.securityMatcher("/api/partner/auth/**")
+                http.securityMatcher("/api/v1/partner/auth/**")
                         .csrf(csrf -> csrf.disable())
                         .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                         .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
@@ -49,7 +50,7 @@ public class SecurityConfig {
         // 2) Partner API (server-to-server): X-API-Key only
         @Bean @Order(2)
         public SecurityFilterChain partnerApiChain(HttpSecurity http) throws Exception {
-                http.securityMatcher("/api/partner/me/**")
+                http.securityMatcher("/api/v1/partner/me/**")
                         .csrf(csrf -> csrf.disable())
                         .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                         .authorizeHttpRequests(auth -> auth.anyRequest().hasRole("PARTNER"))
@@ -68,7 +69,7 @@ public class SecurityConfig {
         // 3) Partner PORTAL (human): PARTNER_PORTAL JWT only
         @Bean @Order(3)
         public SecurityFilterChain partnerPortalChain(HttpSecurity http) throws Exception {
-                http.securityMatcher("/api/partner/portal/**")
+                http.securityMatcher("/api/v1/partner/portal/**")
                         .csrf(csrf -> csrf.disable())
                         .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                         .authorizeHttpRequests(auth -> auth.anyRequest().hasRole("PARTNER"))
@@ -82,11 +83,11 @@ public class SecurityConfig {
         // 4) ATM chain
         @Bean @Order(4)
         public SecurityFilterChain atmChain(HttpSecurity http) throws Exception {
-                http.securityMatcher("/api/atm/**")
+                http.securityMatcher("/api/v1/atm/**")
                         .csrf(csrf -> csrf.disable())
                         .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                         .authorizeHttpRequests(auth -> auth
-                                .requestMatchers("/api/atm/login").permitAll()
+                                .requestMatchers("/api/v1/atm/auth/login").permitAll()
                                 .anyRequest().hasRole("ATM")
                         )
                         .addFilterBefore(new AtmJwtAuthenticationFilter(jwtTokenService),
@@ -106,7 +107,7 @@ public class SecurityConfig {
                 http.csrf(csrf -> csrf.disable())
                         .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                         .authorizeHttpRequests(auth -> auth
-                                .requestMatchers("/error","/api/health", "/auth/login").permitAll()
+                                .requestMatchers("/error","/health", ApiPaths.ADMIN+"/auth/login").permitAll()
                                 .anyRequest().authenticated()
                         )
                         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

@@ -154,6 +154,8 @@ public class TransactionService {
     @Transactional
     public TransactionResponse transfer(String idemKey, TransferRequest request) {
 
+
+        System.out.println("To id in Original transfer "+request.toAccountId());
         // check for repeated transaction idempotency
         TransactionResponse existing = returnExistingIfDuplicate(idemKey);
         if (existing != null)
@@ -216,7 +218,7 @@ public class TransactionService {
             writeLedger(fromAccount, saved, EntryDirection.DEBIT, request.amount());
             writeLedger(toAccount, saved, EntryDirection.CREDIT, request.amount());
 
-            return toResponse(transaction);
+            return toResponse(saved);
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             return transactionRepo.findByReference(idemKey)
                     .map(this::toResponse)

@@ -1,7 +1,9 @@
 package seniorproject.bankifycore.web.v1;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import seniorproject.bankifycore.consants.ApiPaths;
 import seniorproject.bankifycore.dto.transaction.DepositRequest;
 import seniorproject.bankifycore.dto.transaction.TransactionResponse;
 import seniorproject.bankifycore.dto.transaction.TransferRequest;
@@ -13,7 +15,8 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/transactions")
+@RequestMapping(ApiPaths.TRANSACTIONS)
+@PreAuthorize("hasRole('ATM')")
 public class TransactionController {
 
     private final TransactionService transactionService;

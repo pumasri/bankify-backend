@@ -10,13 +10,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import seniorproject.bankifycore.consants.ApiPaths;
 import seniorproject.bankifycore.dto.customer.CreateCustomerRequest;
 import seniorproject.bankifycore.dto.customer.UpdateCustomerRequest;
 import seniorproject.bankifycore.dto.customer.CustomerResponse;
 import seniorproject.bankifycore.service.CustomerService;
 
 @RestController
-@RequestMapping("/api/customers")
+@RequestMapping(ApiPaths.CUSTOMERS)
 @RequiredArgsConstructor
 public class CustomerController {
 
@@ -53,8 +54,10 @@ public class CustomerController {
 
     @PatchMapping("/{id}/disable")
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
-    public CustomerResponse disable(@PathVariable UUID id) {
+    public CustomerResponse disableCustomer(@PathVariable UUID id) {
         return customerService.disable(id);
     }
+
+
 
 }

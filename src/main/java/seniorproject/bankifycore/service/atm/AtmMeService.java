@@ -63,10 +63,22 @@ public class AtmMeService {
 
     @Transactional
     public TransactionResponse transfer(String idemKey, AtmTransferRequest req) {
+
         validateAmmount(req.amount());
-        Account acc = atmAccountService.myActiveAccountOrThrow();
+        //find the from account which is currently log in one
+        Account from  = atmAccountService.myActiveAccountOrThrow();
+
+        //to account to which account to transfer
+        Account to = accountRepository.findByAccountNumber(req.toAccountNumber())
+                .orElseThrow(() -> new IllegalArgumentException("Receiver account not found"));
+
+        // Optional: block transferring to self by account number
+        if (from.getId().equals(to.getId())) {
+            throw new IllegalStateException("Cannot transfer to the same account");
+        }
+
         return transactionService.transfer(idemKey,
-                new TransferRequest(acc.getId(), req.toAccountId(), req.amount(), req.note()));
+                new TransferRequest(from.getId(), to.getId(), req.amount(), req.note()));
     }
 
 
