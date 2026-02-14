@@ -16,20 +16,21 @@ import java.util.UUID;
 @Repository
 public interface AccountRepository extends JpaRepository<Account, UUID> {
     Optional<Account> findByAccountNumber(String accountNumber);
+
     boolean existsByAccountNumber(String accountNumber);
+
     List<Account> findByCustomer_Id(UUID accountNumbers);
 
-
-    //When fetching this row, lock it in the database so no one else can modify it until I’m done.
+    // When fetching this row, lock it in the database so no one else can modify it
+    // until I’m done.
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select a from Account a where a.id = :id")
-    Optional<Account>findByIdForUpdate(@Param("id") UUID id);
+    Optional<Account> findByIdForUpdate(@Param("id") UUID id);
 
-    Optional<Account> findByClientApp_Id(UUID clientAppId);
+    Optional<Account> findByPartnerApp_Id(UUID partnerAppId);
 
     Optional<Account> findFirstByCustomer_IdAndStatus(UUID customerId, AccountStatus status);
 
-
-    boolean existsByClientApp_Id(UUID clientAppId);
+    boolean existsByPartnerApp_Id(UUID partnerAppId);
 
 }

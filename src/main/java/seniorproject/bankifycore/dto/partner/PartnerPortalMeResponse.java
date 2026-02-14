@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.UUID;
 
 public record PartnerPortalMeResponse(
-        UUID clientUserId,
+        UUID partnerUserId,
         String email,
         String role,
-        UUID clientAppId,
+        UUID partnerAppId,
         String appName,
         String appStatus,
         boolean apiKeyIssued,

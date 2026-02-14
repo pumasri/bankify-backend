@@ -47,9 +47,8 @@ public class Account extends Auditable {
     private AccountStatus status = AccountStatus.ACTIVE;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "client_app_id", unique = true)
-    private ClientApp clientApp; // null for normal accounts
-
+    @JoinColumn(name = "partner_app_id", unique = true)
+    private PartnerApp partnerApp; // null for normal accounts
 
     @Column(name = "pin_hash")
     private String pinHash;
@@ -69,11 +68,11 @@ public class Account extends Auditable {
     @PrePersist
     @PreUpdate
     private void validateOwnership() {
-        if (customer == null && clientApp == null) {
-            throw new IllegalStateException("Account must belong to either Customer or ClientApp");
+        if (customer == null && partnerApp == null) {
+            throw new IllegalStateException("Account must belong to either Customer or PartnerApp");
         }
-        if (customer != null && clientApp != null) {
-            throw new IllegalStateException("Account cannot belong to both Customer and ClientApp");
+        if (customer != null && partnerApp != null) {
+            throw new IllegalStateException("Account cannot belong to both Customer and PartnerApp");
         }
     }
 

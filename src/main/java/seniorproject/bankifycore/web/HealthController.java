@@ -2,18 +2,13 @@ package seniorproject.bankifycore.web;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import seniorproject.bankifycore.consants.ApiPaths;
 
 @RestController
 public class HealthController {
 
-    @GetMapping("/api/health")
+    @GetMapping(ApiPaths.HEALTH)
     public String health() {
         return "This is working awesome";
     }
-
-    @GetMapping("/api/protected-test")
-    public String protectedTest() {
-        return "You are authenticated 🎉";
-    }
-
 }

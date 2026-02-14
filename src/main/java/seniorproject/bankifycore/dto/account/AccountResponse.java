@@ -10,7 +10,7 @@ import java.util.UUID;
 public record AccountResponse(
                 UUID id,
                 UUID customerId,
-                UUID clientAppId,
+                UUID partnerAppId,
                 String accountNumber,
                 AccountType type,
                 String currency,

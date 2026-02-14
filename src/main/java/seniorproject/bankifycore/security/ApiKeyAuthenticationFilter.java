@@ -9,8 +9,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
-import seniorproject.bankifycore.domain.enums.ClientStatus;
-import seniorproject.bankifycore.repository.ClientAppRepository;
+import seniorproject.bankifycore.consants.ApiPaths;
+import seniorproject.bankifycore.domain.enums.PartnerAppStatus;
+import seniorproject.bankifycore.repository.PartnerAppRepository;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -20,12 +21,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
-    private final ClientAppRepository clientAppRepository;
+    private final PartnerAppRepository partnerAppRepository;
     private final String apiKeyPepper; // from config
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getRequestURI().startsWith("/api/partner/me/");
+        return !request.getRequestURI().startsWith(ApiPaths.PARTNER + "/me");
     }
 
     @Override
@@ -44,19 +45,19 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
         // hash the api
         String hash = sha256(apiKey + apiKeyPepper);
 
-        // look up client in db and if the client is active
-        var client = clientAppRepository.findByApiKeyHashAndStatus(hash, ClientStatus.ACTIVE)
+        // look up partner in db and if the partner is active
+        var partner = partnerAppRepository.findByApiKeyHashAndStatus(hash, PartnerAppStatus.ACTIVE)
                 .orElse(null);
 
-        // if client not found , access denied
-        if (client == null) {
+        // if partner not found , access denied
+        if (partner == null) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid API key");
             return;
         }
 
         // create authenticated user (spring security)
         var auth = new UsernamePasswordAuthenticationToken(
-                client.getId(), // principal (client id)
+                partner.getId(), // principal (partner id)
                 null,
                 List.of(new SimpleGrantedAuthority("ROLE_PARTNER")));
 

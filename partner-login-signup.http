@@ -1,0 +1,145 @@
+@base = http://localhost:8080
+
+### Partner signup (public)
+# @name partnerSignup
+POST {{base}}/api/partner/auth/signup
+Content-Type: application/json
+
+{
+  "appName": "My Client App",
+  "email": "partner.owner+{{randomInt}}@demo.com",
+  "password": "Passw0rd!",
+  "callbackUrl": "https://client.com/webhooks/bankify"
+}
+
+> {%
+    client.global.set("partnerEmail", response.body.email ?? "partner.owner@demo.com");
+    client.global.set("clientAppId", response.body.clientAppId ?? response.body.appId ?? response.body.id);
+%}
+
+### Partner portal login (public) -> PARTNER_PORTAL JWT
+# @name partnerPortalLogin
+POST {{base}}/api/partner/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{partnerEmail}}",
+  "password": "Passw0rd!"
+}
+
+> {%
+    client.global.set("portalJwt", response.body.token);
+%}
+
+### Portal me (requires portal JWT)
+GET {{base}}/api/partner/portal/me
+Authorization: Bearer {{portalJwt}}
+
+
+
+
+
+
+# Put real account IDs (use the ones created by admin)
+@accountA = {{ACCOUNT_ID_A}}
+@accountB = {{ACCOUNT_ID_B}}
+
+### Partner balance
+GET {{base}}/api/partner/me/balance
+X-API-Key: {{partnerApiKey}}
+
+### Deposit (idempotent)
+POST {{base}}/api/partner/me/deposit
+X-API-Key: {{partnerApiKey}}
+Idempotency-Key: TXN-PARTNER-001
+Content-Type: application/json
+
+{
+  "accountId": "{{accountA}}",
+  "amount": 100,
+  "note": "partner deposit"
+}
+
+### Withdraw (idempotent)
+POST {{base}}/api/partner/me/withdraw
+X-API-Key: {{partnerApiKey}}
+Idempotency-Key: TXN-PARTNER-002
+Content-Type: application/json
+
+{
+  "accountId": "{{accountA}}",
+  "amount": 50,
+  "note": "partner withdraw"
+}
+
+### Transfer (idempotent)
+POST {{base}}/api/partner/me/transfer
+X-API-Key: {{partnerApiKey}}
+Idempotency-Key: TXN-PARTNER-003
+Content-Type: application/json
+
+{
+  "fromAccountId": "{{accountA}}",
+  "toAccountId": "{{accountB}}",
+  "amount": 25,
+  "note": "partner transfer"
+}
+
+### Retry same deposit (should NOT create new tx)
+POST {{base}}/api/partner/me/deposit
+X-API-Key: {{partnerApiKey}}
+Idempotency-Key: TXN-PARTNER-001
+Content-Type: application/json
+
+{
+  "accountId": "{{accountA}}",
+  "amount": 100,
+  "note": "partner deposit"
+}
+
+
+
+
+
+
+
+
+### Request rotation (portal JWT)
+@partnerApiKey =
+# @name rotationRequest
+POST {{base}}/api/partner/portal/keys/rotate-request
+Authorization: Bearer {{portalJwt}}
+Content-Type: application/json
+
+{
+  "reason": "suspected leak"
+}
+
+> {%
+    client.global.set("rotationRequestId", response.body.requestId);
+%}
+
+### List rotation requests (portal JWT)
+GET {{base}}/api/partner/portal/keys/rotation-requests
+Authorization: Bearer {{portalJwt}}
+
+
+
+### Old key should fail (or 401)
+GET {{base}}/api/partner/me/balance
+X-API-Key: {{partnerApiKey}}
+
+### New key should work
+GET {{base}}/api/partner/me/balance
+X-API-Key: {{partnerApiKey2}}
+
+
+
+
+
+
+@base = http://localhost:8080
+
+### Spam partner endpoint (run repeatedly)
+GET {{base}}/api/partner/me/balance
+X-API-Key: {{partnerApiKey}}

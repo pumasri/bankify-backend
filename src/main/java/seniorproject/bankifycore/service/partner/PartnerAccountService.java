@@ -13,12 +13,12 @@ import java.util.UUID;
 public class PartnerAccountService {
 
     private final AccountRepository accountRepo;
-    private final PartnerAuthService partnerAuthService;
+    private final PartnerPortalAuthService partnerAuthService;
 
     @Transactional(readOnly = true)
     public Account getPartnerAccountOrThrow() {
-        UUID clientId = partnerAuthService.currentClientId();
-        return accountRepo.findByClientApp_Id(clientId)
+        UUID partnerId = partnerAuthService.currentPartnerUserIdId();
+        return accountRepo.findByPartnerApp_Id(partnerId)
                 .orElseThrow(() -> new IllegalStateException("Partner account not found"));
     }
 }

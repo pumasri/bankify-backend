@@ -67,12 +67,12 @@ public class JwtTokenService {
     }
 
 
-    public String generatePartnerPortalToken(UUID clientUserId, String email, String role) {
+    public String generatePartnerPortalToken(UUID partnerUserId, String email, String role) {
         Instant now = Instant.now();
         Instant expiry = now.plusSeconds(partnerPortalExpirationSeconds);
 
         return Jwts.builder()
-                .setSubject(clientUserId.toString())
+                .setSubject(partnerUserId.toString())
                 .claim("typ", "PARTNER_PORTAL")
                 .claim("email", email)
                 .claim("role", role) // OWNER / MEMBER

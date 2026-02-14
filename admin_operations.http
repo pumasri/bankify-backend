@@ -1,0 +1,130 @@
+@base = http://localhost:8080
+
+
+
+# @name adminLogin
+POST {{base}}/api/v1/admin/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@bankify.local",
+  "password": "admin123"
+}
+
+> {%
+    client.global.set("adminJwt", response.body.token);
+%}
+
+
+### Create customer
+# @name createCustomer
+@randomInt = 201;
+POST {{base}}/api/v1/admin/customers
+Authorization: Bearer {{adminJwt}}
+Content-Type: application/json
+
+{
+  "firstName": "Meili",
+  "lastName": "Not Sure",
+  "phoneNumber": "0812345678",
+  "email": "atm.user{{randomInt}}@demo.com",
+  "type": "INDIVIDUAL"
+}
+
+> {%
+    client.global.set("customerId", response.body.id ?? response.body.customerId);
+%}
+
+### List customers
+GET {{base}}/api/v1/admin/customers
+Authorization: Bearer {{adminJwt}}
+
+### Get customer
+GET {{base}}/api/v1/admin/customers/{{customerId}}
+Authorization: Bearer {{adminJwt}}
+
+
+### Create account (ADMIN)
+
+# @name createAccount
+POST {{base}}/api/v1/admin/accounts
+Authorization: Bearer {{adminJwt}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "type": "CURRENT",
+  "currency": "THB",
+  "pin": "123456"
+}
+
+> {%
+    client.global.set("accountId", response.body.id ?? response.body.accountId);
+    client.global.set("accountNumber", response.body.accountNumber);
+%}
+
+### List accounts (optional filter by customerId)
+GET {{base}}/api/v1/admin/accounts
+Authorization: Bearer {{adminJwt}}
+
+### Get account
+GET {{base}}/api/v1/admin/accounts/bea1cdb1-d575-4699-a3a9-6adcdc6696af
+Authorization: Bearer {{adminJwt}}
+
+### Ledger
+GET {{base}}/api/v1/admin/accounts/b47cdd22-0db0-4983-9b95-014d75fe405b/ledger
+Authorization: Bearer {{adminJwt}}
+
+### Disable account
+PATCH {{base}}/api/v1/admin/accounts/b0fe7c7e-08c1-4252-92c6-bb82bf4b7d10/disable
+Authorization: Bearer {{adminJwt}}
+
+
+
+bank account no = 636125022268
+pin = 123456
+
+
+
+
+
+### List client apps
+GET {{base}}/api/v1/admin/clients
+Authorization: Bearer {{adminJwt}}
+
+### Approve client -> partnerApiKey
+# @name approveClient
+PATCH {{base}}/api/v1/admin/partner-apps/981c1ee2-acdc-4afc-be6e-a8002d19dfc0/approve
+Authorization: Bearer {{adminJwt}}
+
+> {%
+    client.global.set("partnerApiKey", response.body.apiKey);
+%}
+
+### Disable client
+PATCH {{base}}/api/v1/admin/clients/{{clientAppId}}/disable
+Authorization: Bearer {{adminJwt}}
+
+
+@oldApi = d6213ad681c9c8b56e06a0f660e4bbc5b7bc154e0322003f364434da63e038d7
+@newApi Key = 6fe11f916036101988240b32aa0e51e71290ba4fbc9938c17393526aa4e542cf
+
+
+
+
+@base = http://localhost:8080
+
+### All audit logs
+GET {{base}}/api/v1/admin/audit-logs
+Authorization: Bearer {{adminJwt}}
+
+### TX only
+GET {{base}}/api/v1/admin/audit-logs?action=TX_CREATED
+Authorization: Bearer {{adminJwt}}
+
+### Actor filter
+GET {{base}}/api/v1/admin/audit-logs?actorType=ATM
+Authorization: Bearer {{adminJwt}}
+
+
+

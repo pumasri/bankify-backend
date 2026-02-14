@@ -1,0 +1,69 @@
+@base = http://localhost:8080
+@accountNumber = 340365127009
+@pin = {{ATM_PIN}}
+@newPin = 4321
+@toFrozenAccount = 636125022268
+@toAccountId = b47cdd22-0db0-4983-9b95-014d75fe405b
+@toAccountNumber = 152360574021
+
+### ATM login -> atmJwt
+# @name atmLogin
+POST {{base}}/api/v1/atm/auth/login
+Content-Type: application/json
+
+{
+  "accountNumber": "{{accountNumber}}",
+  "pin": "123456"
+}
+
+> {%
+    client.global.set("atmJwt", response.body.token);
+%}
+
+### Balance
+GET {{base}}/api/v1/atm/me/balance
+Authorization: Bearer {{atmJwt}}
+
+### Deposit
+POST {{base}}/api/v1/atm/me/deposit
+Authorization: Bearer {{atmJwt}}
+Idempotency-Key: ATM-TXN-007
+Content-Type: application/json
+
+{
+  "amount": 10000,
+  "note": "atm deposit"
+}
+
+### Withdraw
+POST {{base}}/api/v1/atm/me/withdraw
+Authorization: Bearer {{atmJwt}}
+Idempotency-Key: ATM-TXN-008
+Content-Type: application/json
+
+{
+  "amount": 10000,
+  "note": "atm withdraw"
+}
+
+### Transfer (adjust body fields if your AtmTransferRequest differs)
+POST {{base}}/api/v1/atm/me/transfer
+Authorization: Bearer {{atmJwt}}
+Idempotency-Key: ATM-TXN-005
+Content-Type: application/json
+
+{
+  "toAccountNumber": "{{toAccountNumber}}",
+  "amount": 9999,
+  "note": "atm transfer"
+}
+
+### Change PIN
+POST {{base}}/api/v1/atm/me/change-pin
+Authorization: Bearer {{atmJwt}}
+Content-Type: application/json
+
+{
+  "oldPin": "654321",
+  "newPin": "123456"
+}

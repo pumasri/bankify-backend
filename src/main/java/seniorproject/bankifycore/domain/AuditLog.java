@@ -26,13 +26,13 @@ public class AuditLog extends Auditable {
     private String actorType; // USER / ATM / PARTNER
 
     @Column(name="actor_id", nullable=false, length=64)
-    private String actorId;   // UUID as string (userId/accountId/clientAppId)
+    private String actorId;   // UUID as string (userId/accountId/partnerAppId)
 
     @Column(nullable=false, length=40)
-    private String action;    // e.g. CLIENT_APPROVED, PIN_RESET, TX_DEPOSIT
+    private String action;    // e.g. Partner_APPROVED, PIN_RESET, TX_DEPOSIT
 
     @Column(name="entity_type", nullable=false, length=40)
-    private String entityType; // e.g. ClientApp, Account, Transaction
+    private String entityType; // e.g. Partner, Account, Transaction
 
     @Column(name="entity_id", nullable=true, length=64)
     private String entityId;

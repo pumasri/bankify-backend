@@ -1,0 +1,134 @@
+@base = http://localhost:8080
+
+### Partner signup (public)
+@randomInt = 100
+# @name partnerSignup
+POST {{base}}/api/v1/partner/auth/signup
+Content-Type: application/json
+
+{
+  "appName": "Partner",
+  "email": "partner.owner+{{randomInt}}@demo.com",
+  "password": "Passw0rd!",
+  "callbackUrl": "https://client.com/webhooks/bankify"
+}
+
+> {%
+    client.global.set("partnerEmail", response.body.email);
+    client.global.set("clientAppId", response.body.clientAppId ?? response.body.appId ?? response.body.id);
+%}
+
+### Partner portal login (public) -> portalJwt
+@email = partner.owner+100@demo.com
+# @name partnerLogin
+POST {{base}}/api/v1/partner/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "Passw0rd!"
+}
+
+> {%
+    client.global.set("portalJwt", response.body.token);
+%}
+
+
+
+### Portal me
+GET {{base}}/api/v1/partner/portal/me
+Authorization: Bearer {{portalJwt}}
+
+### Request key rotation
+# @name rotateRequest
+POST {{base}}/api/v1/partner/portal/keys/rotate-request
+Authorization: Bearer {{portalJwt}}
+Content-Type: application/json
+
+{
+  "reason": "Some one leaked the api key"
+}
+
+> {%
+    client.global.set("rotationRequestId", response.body.requestId);
+%}
+
+### List rotation requests
+GET {{base}}/api/v1/partner/portal/keys/rotation-requests
+Authorization: Bearer {{portalJwt}}
+
+#### @name adminLogin
+POST {{base}}/api/v1/admin/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@bankify.local",
+  "password": "admin123"
+}
+
+> {%
+    client.global.set("adminJwt", response.body.token);
+%}
+
+### Admin approve rotation -> partnerApiKey2
+# @name approveRotation
+PATCH {{base}}/api/v1/admin/portal/partner-app/rotation-requests/981c1ee2-acdc-4afc-be6e-a8002d19dfc0/approve
+Authorization: Bearer {{adminJwt}}
+
+> {%
+    client.global.set("partnerApiKey2", response.body.apiKey);
+%}
+
+
+###
+@oldApi = d6213ad681c9c8b56e06a0f660e4bbc5b7bc154e0322003f364434da63e038d7
+@newApi_Key = 15707253af2c2bc78bf3ba8425f41968374845a7bc5f55ed30c82d1cbb634fab
+
+@accountA = b47cdd22-0db0-4983-9b95-014d75fe405b
+@accountB = 273285cf-155a-4932-aad2-ed0586208855
+
+### Balance (API key)
+GET {{base}}/api/v1/partner/me/balance
+X-API-Key: {{newApi_Key}}
+
+### Deposit
+POST {{base}}/api/v1/partner/me/deposit
+X-API-Key: {{newApi_Key}}
+Idempotency-Key: P-TXN-0099
+Content-Type: application/json
+
+{
+  "amount": 10000,
+  "note": "partner deposit"
+}
+
+### Withdraw
+POST {{base}}/api/v1/partner/me/withdraw
+X-API-Key: {{newApi_Key}}
+Idempotency-Key: P-TXN-0078
+Content-Type: application/json
+
+{
+  "amount": 5000,
+  "note": "partner withdraw"
+}
+
+### Transfer
+POST {{base}}/api/v1/partner/me/transfer
+X-API-Key: {{newApi_Key}}
+Idempotency-Key: P-TXN-007
+Content-Type: application/json
+
+{
+  "accountNumber": "340365127009",
+  "amount": 9999,
+  "note": "partner transfer"
+}
+
+
+
+
+
+
+
+

@@ -25,10 +25,8 @@ public class AtmAccountService {
         Account account = accountRepo.findById(userId)
                 .orElseThrow(() -> new IllegalStateException("ATM account not found"));
 
-
-
         // block partner settlement accounts from ATM
-        if (account.getClientApp() != null) {
+        if (account.getPartnerApp() != null) {
             throw new IllegalStateException("ATM account not found");
         }
 
@@ -54,17 +52,20 @@ public class AtmAccountService {
         return account;
     }
 
-
     @Transactional(readOnly = true)
     public Account myAccountAllowPinChangeOrThrow() {
         UUID accountId = atmAuthService.currentAccountId();
         Account account = accountRepo.findById(accountId)
                 .orElseThrow(() -> new IllegalStateException("ATM account not found"));
 
-        if (account.getClientApp() != null) throw new IllegalStateException("ATM account not found");
-        if (account.getStatus() == AccountStatus.FROZEN) throw new IllegalStateException("Account is frozen");
-        if (account.getCustomer() == null) throw new IllegalStateException("Customer not found for this ATM account");
-        if (account.getCustomer().getStatus() == CustomerStatus.FROZEN) throw new IllegalStateException("Customer is frozen");
+        if (account.getPartnerApp() != null)
+            throw new IllegalStateException("ATM account not found");
+        if (account.getStatus() == AccountStatus.FROZEN)
+            throw new IllegalStateException("Account is frozen");
+        if (account.getCustomer() == null)
+            throw new IllegalStateException("Customer not found for this ATM account");
+        if (account.getCustomer().getStatus() == CustomerStatus.FROZEN)
+            throw new IllegalStateException("Customer is frozen");
 
         return account;
     }

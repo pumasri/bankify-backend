@@ -97,6 +97,13 @@ public class AccountService {
 
         Account saved = accountRepo.save(account);
 
+        // audit log is done here
+        auditService.log(
+                ActorContext.actorType(), ActorContext.actorId(),
+                "ACCOUNT_UPDATED",
+                "Account", account.getId().toString(),
+                "reason=admin_" + req.status());
+
         return toResponse(saved);
     }
 
@@ -109,6 +116,12 @@ public class AccountService {
         account.setStatus(AccountStatus.FROZEN);
         accountRepo.save(account);
 
+        // audit log is done here
+        auditService.log(
+                ActorContext.actorType(), ActorContext.actorId(),
+                "ACCOUNT_DISABLED",
+                "Account", account.getId().toString(),
+                "reason=admin_disable");
         return toResponse(account);
     }
 
@@ -118,7 +131,7 @@ public class AccountService {
                 .orElseThrow(() -> new IllegalArgumentException("Account not found"));
 
         // ❌ Partner accounts never get ATM PINs
-        if (acc.getClientApp() != null) {
+        if (acc.getPartnerApp() != null) {
             throw new IllegalArgumentException("Not a customer account");
         }
 
@@ -142,13 +155,12 @@ public class AccountService {
         acc.setPinLockedUntil(null);
         accountRepo.save(acc);
 
-        //audit log is done here
+        // audit log is done here
         auditService.log(
                 ActorContext.actorType(), ActorContext.actorId(),
                 "ACCOUNT_PIN_RESET",
                 "Account", accountId.toString(),
-                "reason=admin_reset"
-        );
+                "reason=admin_reset");
 
     }
 
@@ -181,12 +193,12 @@ public class AccountService {
     private AccountResponse toResponse(Account account) {
 
         UUID customerId = (account.getCustomer() == null) ? null : account.getCustomer().getId();
-        UUID clientAppId = (account.getClientApp() == null) ? null : account.getClientApp().getId();
+        UUID partnerAppId = (account.getPartnerApp() == null) ? null : account.getPartnerApp().getId();
 
         return new AccountResponse(
                 account.getId(),
                 customerId,
-                clientAppId,
+                partnerAppId,
                 account.getAccountNumber(),
                 account.getType(),
                 account.getCurrency().name(),
