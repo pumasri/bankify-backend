@@ -4,11 +4,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 
-//Generate raw key → show to client (ONCE)
+//Generate raw key → show to partner (ONCE)
 //        ↓
 //Hash with pepper → store in DB
 //        ↓
-//Client sends raw key
+//partner sends raw key
 //        ↓
 //Hash again → compare with DB
 

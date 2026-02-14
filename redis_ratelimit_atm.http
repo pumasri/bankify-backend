@@ -1,0 +1,51 @@
+@base = http://localhost:8080
+@accountNumber = {{ATM_ACCOUNT_NUMBER}}
+@pin = {{ATM_PIN}}
+
+### login (gets atmJwt)
+# @name atmLogin
+POST {{base}}/api/v1/atm/auth/login
+Content-Type: application/json
+
+{
+  "accountNumber": "{{accountNumber}}",
+  "pin": "{{pin}}"
+}
+
+> {%
+    client.global.set("atmJwt", response.body.token);
+%}
+
+### hit balance many times quickly (after ~5 -> 429)
+GET {{base}}/api/v1/atm/me/balance
+Authorization: Bearer {{atmJwt}}
+
+###
+GET {{base}}/api/v1/atm/me/balance
+Authorization: Bearer {{atmJwt}}
+
+###
+GET {{base}}/api/v1/atm/me/balance
+Authorization: Bearer {{atmJwt}}
+
+###
+GET {{base}}/api/v1/atm/me/balance
+Authorization: Bearer {{atmJwt}}
+
+###
+GET {{base}}/api/v1/atm/me/balance
+Authorization: Bearer {{atmJwt}}
+
+###
+GET {{base}}/api/v1/atm/me/balance
+Authorization: Bearer {{atmJwt}}
+
+
+
+
+@base = http://localhost:8080
+@partnerApiKey = {{PARTNER_API_KEY}}
+
+### spam this quickly -> 429
+GET {{base}}/api/v1/partner/me/balance
+X-API-Key: {{partnerApiKey}}

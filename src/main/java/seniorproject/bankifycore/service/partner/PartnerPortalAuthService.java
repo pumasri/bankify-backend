@@ -6,42 +6,40 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import seniorproject.bankifycore.domain.ClientApp;
-import seniorproject.bankifycore.domain.ClientUser;
-import seniorproject.bankifycore.domain.enums.ClientStatus;
-import seniorproject.bankifycore.domain.enums.ClientUserRole;
-import seniorproject.bankifycore.domain.enums.ClientUserStatus;
+import seniorproject.bankifycore.domain.PartnerApp;
+import seniorproject.bankifycore.domain.PartnerUser;
+import seniorproject.bankifycore.domain.enums.PartnerUserRole;
+import seniorproject.bankifycore.domain.enums.PartnerUserStatus;
+import seniorproject.bankifycore.domain.enums.PartnerAppStatus;
 import seniorproject.bankifycore.dto.partner.PartnerLoginRequest;
 import seniorproject.bankifycore.dto.partner.PartnerLoginResponse;
 import seniorproject.bankifycore.dto.partner.PartnerSignupRequest;
 import seniorproject.bankifycore.dto.partner.PartnerSignupResponse;
-import seniorproject.bankifycore.repository.ClientAppRepository;
-import seniorproject.bankifycore.repository.ClientUserRepository;
+import seniorproject.bankifycore.repository.PartnerUserRepository;
+import seniorproject.bankifycore.repository.PartnerAppRepository;
 import seniorproject.bankifycore.security.JwtTokenService;
 
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class PartnerAuthService {
+public class PartnerPortalAuthService {
 
-
-    private final ClientUserRepository clientUserRepo;
+    private final PartnerUserRepository partnerUserRepo;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenService jwtTokenService;
-    private final ClientAppRepository clientAppRepo;
+    private final PartnerAppRepository partnerAppRepo;
 
-
-    //This method retrieves the UUID of the currently authenticated client from Spring Security’s security context and throws an error if the
+    // This method retrieves the UUID of the currently authenticated partner from
+    // Spring Security’s security context and throws an error if the
     // request is unauthenticated.
-    public UUID currentClientId() {
+    public UUID currentPartnerUserIdId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getPrincipal() == null) {
-            throw new IllegalStateException("Partner principal must be clientId UUID");
+            throw new IllegalStateException("Partner principal must be partnerId UUID");
         }
         return (UUID) auth.getPrincipal();
     }
-
 
     @Transactional(readOnly = true)
     public PartnerLoginResponse login(PartnerLoginRequest req) {
@@ -50,22 +48,18 @@ public class PartnerAuthService {
             throw new IllegalArgumentException("Invalid email or password");
         }
 
-        ClientUser user = clientUserRepo.findByEmail(email)
+        PartnerUser user = partnerUserRepo.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
 
-        if (user.getStatus() != ClientUserStatus.ACTIVE) {
+        if (user.getStatus() != PartnerUserStatus.ACTIVE) {
             throw new IllegalStateException("Partner user is disabled");
         }
 
-
         // ✅ (app status gate)
-        var app = user.getClientApp();
-        if (app.getStatus() == ClientStatus.DISABLED || app.getStatus() == ClientStatus.REJECTED) {
-            throw new IllegalStateException("Client app is disabled");
+        var app = user.getPartnerApp();
+        if (app.getStatus() == PartnerAppStatus.DISABLED || app.getStatus() == PartnerAppStatus.REJECTED) {
+            throw new IllegalStateException("Partner app is disabled");
         }
-        // Recommended: allow PENDING to login (see docs + pending status)
-        // If you want to block PENDING too, use:
-        // if (app.getStatus() != ClientStatus.ACTIVE) throw new IllegalStateException("Client app is not active");
 
         if (!passwordEncoder.matches(req.password(), user.getPasswordHash())) {
             throw new IllegalArgumentException("Invalid email or password");
@@ -74,13 +68,10 @@ public class PartnerAuthService {
         String token = jwtTokenService.generatePartnerPortalToken(
                 user.getId(),
                 user.getEmail(),
-                user.getRole().name()
-        );
+                user.getRole().name());
 
         return new PartnerLoginResponse(token);
     }
-
-
 
     @Transactional
     public PartnerSignupResponse signup(PartnerSignupRequest req) {
@@ -96,34 +87,31 @@ public class PartnerAuthService {
         }
 
         // Enforce global-unique email for portal login
-        if (clientUserRepo.existsByEmail(req.email().trim().toLowerCase())) {
+        if (partnerUserRepo.existsByEmail(req.email().trim().toLowerCase())) {
             throw new IllegalArgumentException("email already registered");
         }
 
-        ClientApp app = ClientApp.builder()
+        PartnerApp app = PartnerApp.builder()
                 .name(req.appName().trim())
-                .status(ClientStatus.PENDING)
+                .status(PartnerAppStatus.PENDING)
                 .apiKeyHash(null)
                 .contactEmail(req.email().trim().toLowerCase())
                 .callbackUrl(req.callbackUrl())
                 .build();
 
-        ClientApp savedApp = clientAppRepo.save(app);
+        PartnerApp savedApp = partnerAppRepo.save(app);
 
-        ClientUser user = ClientUser.builder()
+        PartnerUser user = PartnerUser.builder()
                 .email(req.email().trim().toLowerCase())
                 .passwordHash(passwordEncoder.encode(req.password()))
-                .status(ClientUserStatus.ACTIVE)
-                .role(ClientUserRole.OWNER)
-                .clientApp(savedApp)
+                .status(PartnerUserStatus.ACTIVE)
+                .role(PartnerUserRole.OWNER)
+                .partnerApp(savedApp)
                 .build();
 
-        clientUserRepo.save(user);
+        partnerUserRepo.save(user);
 
         return new PartnerSignupResponse(savedApp.getId(), savedApp.getStatus().name());
     }
-
-
-
 
 }

@@ -3,7 +3,7 @@ package seniorproject.bankifycore.dto.partner;
 import java.util.UUID;
 
 public record PartnerSignupResponse(
-        UUID clientAppId,
+        UUID partnerAppId,
         String status
 ) {
 }

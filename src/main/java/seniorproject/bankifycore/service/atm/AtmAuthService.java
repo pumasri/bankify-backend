@@ -1,6 +1,5 @@
 package seniorproject.bankifycore.service.atm;
 
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,9 +21,8 @@ import java.util.UUID;
 public class AtmAuthService {
 
     private final AccountRepository accountRepo;
-    private final JwtTokenService jwtService; //  existing JWT generator
+    private final JwtTokenService jwtService; // existing JWT generator
     private final PasswordEncoder passwordEncoder; // BCryptPasswordEncoder bean
-
 
     public UUID currentAccountId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -37,16 +35,14 @@ public class AtmAuthService {
         return id;
     }
 
-
     @Transactional
     public AtmLoginResponse login(AtmLoginRequest req) {
 
         var acc = accountRepo.findByAccountNumber(req.accountNumber())
                 .orElseThrow(() -> new IllegalArgumentException("Account number not found"));
 
-
         // block partner accounts from ATM
-        if (acc.getClientApp() != null) {
+        if (acc.getPartnerApp() != null) {
             throw new IllegalArgumentException("Partners are not allowed to use atm");
         }
 
@@ -79,10 +75,7 @@ public class AtmAuthService {
         // ✅ issue JWT scoped to ATM
         // Put accountId in token so /api/atm/me/** never needs accountId from frontend.
         String token = jwtService.generateAtmToken(acc.getId());
-        return new AtmLoginResponse(token ,acc.isPinChangeRequired());
+        return new AtmLoginResponse(token, acc.isPinChangeRequired());
     }
-
-
-
 
 }

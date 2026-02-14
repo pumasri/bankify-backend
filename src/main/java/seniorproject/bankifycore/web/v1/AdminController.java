@@ -6,14 +6,14 @@ import org.springframework.web.bind.annotation.*;
 
 import seniorproject.bankifycore.consants.ApiPaths;
 import seniorproject.bankifycore.dto.AuditLogResponse;
-import seniorproject.bankifycore.dto.admin.ApproveClientResponse;
+import seniorproject.bankifycore.dto.admin.ApprovePartnerResponse;
 import seniorproject.bankifycore.dto.admin.ResetPinRequest;
-import seniorproject.bankifycore.dto.clientapp.ClientAppResponse;
+import seniorproject.bankifycore.dto.partnerapp.PartnerAppResponse;
 import seniorproject.bankifycore.dto.rotation.ApproveRotationResponse;
 import seniorproject.bankifycore.dto.rotation.RejectRotationResponse;
 import seniorproject.bankifycore.service.AccountService;
 import seniorproject.bankifycore.service.AuditService;
-import seniorproject.bankifycore.service.partner.ClientAppService;
+import seniorproject.bankifycore.service.partner.PartnerAppAdminService;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,59 +24,55 @@ import java.util.UUID;
 public class AdminController {
 
     private final AccountService accountService;
-    private final ClientAppService clientAppService;
+    private final PartnerAppAdminService partnerAppAdminService;
     private final AuditService auditService;
 
-
-    //reset pin
+    // reset pin
     @PatchMapping("/accounts/{accountId}/pin")
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     public void resetPin(@PathVariable UUID accountId, @RequestBody ResetPinRequest req) {
         accountService.resetPin(accountId, req);
     }
 
-    // Clients
-    @GetMapping("/clients")
+    // Partners
+    @GetMapping("/partner-apps")
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
-    public List<ClientAppResponse> listClients() {
-        return clientAppService.list();
+    public List<PartnerAppResponse> listPartners() {
+        return partnerAppAdminService.list();
     }
 
-    //disabling the account
-    @PatchMapping("/clients/{id}/disable")
+    // disabling the account
+    @PatchMapping("/partner-apps/{id}/disable")
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
-    public ClientAppResponse disable(@PathVariable UUID id) {
-        return clientAppService.disable(id);
+    public PartnerAppResponse disable(@PathVariable UUID id) {
+        return partnerAppAdminService.disable(id);
     }
 
-    //activating the account
-    @PatchMapping("/clients/{id}/activate")
+    // activating the account
+    @PatchMapping("/partner-apps/{id}/activate")
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
-    public ClientAppResponse activate(@PathVariable UUID id) {
-        return clientAppService.activate(id);
+    public PartnerAppResponse activate(@PathVariable UUID id) {
+        return partnerAppAdminService.activate(id);
     }
 
-
-
-
-    // approve API for client first time creating account
-    @PatchMapping("/clients/{id}/approve")
+    // approve API for partner first time creating account
+    @PatchMapping("/partner-apps/{id}/approve")
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
-    public ApproveClientResponse approve(@PathVariable UUID id) {
-        return clientAppService.approve(id);
+    public ApprovePartnerResponse approve(@PathVariable UUID id) {
+        return partnerAppAdminService.approve(id);
     }
 
-    // approving api rotation for client
-    @PatchMapping("/clients/rotation-requests/{id}/approve")
+    // approving api rotation for partner
+    @PatchMapping("/partner-apps/rotation-requests/{id}/approve")
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     public ApproveRotationResponse approveRotation(@PathVariable UUID id) {
-        return clientAppService.approveRotation(id);
+        return partnerAppAdminService.approveRotation(id);
     }
 
-    @PatchMapping("/clients/rotation-requests/{id}/reject")
+    @PatchMapping("/partner-apps/rotation-requests/{id}/reject")
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     public RejectRotationResponse rejectRotation(@PathVariable UUID id) {
-        return clientAppService.reject(id);
+        return partnerAppAdminService.reject(id);
     }
 
     @GetMapping("/audit-logs")

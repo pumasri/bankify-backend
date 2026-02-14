@@ -5,16 +5,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import seniorproject.bankifycore.domain.ClientApp;
-import seniorproject.bankifycore.domain.ClientKeyRotationRequest;
-import seniorproject.bankifycore.domain.ClientUser;
-import seniorproject.bankifycore.domain.enums.ClientStatus;
+import seniorproject.bankifycore.domain.PartnerApp;
+import seniorproject.bankifycore.domain.PartnerKeyRotationRequest;
+import seniorproject.bankifycore.domain.PartnerUser;
+import seniorproject.bankifycore.domain.enums.PartnerAppStatus;
 import seniorproject.bankifycore.domain.enums.RotationStatus;
 import seniorproject.bankifycore.dto.partner.PartnerPortalMeResponse;
 import seniorproject.bankifycore.dto.rotation.RotateKeyRequest;
 import seniorproject.bankifycore.dto.rotation.RotateKeyResponse;
 import seniorproject.bankifycore.dto.rotation.RotationRequestItem;
-import seniorproject.bankifycore.repository.ClientUserRepository;
+import seniorproject.bankifycore.repository.PartnerUserRepository;
 import seniorproject.bankifycore.repository.RotationRepository;
 
 import java.util.List;
@@ -24,10 +24,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PartnerPortalService {
 
-        private final ClientUserRepository clientUserRepo;
+        private final PartnerUserRepository partnerUserRepo;
         private final RotationRepository rotationRepo;
 
-        private UUID currentClientUserId() {
+        private UUID currentPartnerUserId() {
                 Authentication auth = SecurityContextHolder.getContext().getAuthentication();
                 if (auth == null || !(auth.getPrincipal() instanceof UUID id)) {
                         throw new IllegalStateException("Partner portal request is not authenticated");
@@ -37,12 +37,12 @@ public class PartnerPortalService {
 
         @Transactional(readOnly = true)
         public PartnerPortalMeResponse me() {
-                UUID userId = currentClientUserId();
+                UUID userId = currentPartnerUserId();
 
-                ClientUser user = clientUserRepo.findById(userId)
+                PartnerUser user = partnerUserRepo.findById(userId)
                                 .orElseThrow(() -> new IllegalStateException("Partner user not found"));
 
-                var app = user.getClientApp();
+                var app = user.getPartnerApp();
 
                 // docs metadata (static list for now)
                 List<PartnerPortalMeResponse.PartnerEndpointDoc> docs = List.of(
@@ -72,25 +72,25 @@ public class PartnerPortalService {
         // rotation happens here , rotaion of key
         @Transactional
         public RotateKeyResponse requestRotation(RotateKeyRequest req) {
-                UUID clientUserId = currentClientUserId();
+                UUID partnerUserId = currentPartnerUserId();
 
-                ClientUser user = clientUserRepo.findById(clientUserId)
+                PartnerUser user = partnerUserRepo.findById(partnerUserId)
                                 .orElseThrow(() -> new IllegalStateException("Partner user not found"));
 
-                ClientApp app = user.getClientApp();
+                PartnerApp app = user.getPartnerApp();
 
                 // Only ACTIVE apps can request rotation
-                if (app.getStatus() != ClientStatus.ACTIVE) {
-                        throw new IllegalStateException("Client app is not active");
+                if (app.getStatus() != PartnerAppStatus.ACTIVE) {
+                        throw new IllegalStateException("Partner app is not active");
                 }
 
                 // Prevent spam: only one pending request at a time
-                if (rotationRepo.existsByClientApp_IdAndStatus(app.getId(), RotationStatus.PENDING)) {
+                if (rotationRepo.existsByPartnerApp_IdAndStatus(app.getId(), RotationStatus.PENDING)) {
                         throw new IllegalStateException("A rotation request is already pending");
                 }
 
-                ClientKeyRotationRequest r = ClientKeyRotationRequest.builder()
-                                .clientApp(app)
+                PartnerKeyRotationRequest r = PartnerKeyRotationRequest.builder()
+                                .partnerApp(app)
                                 .requestedBy(user)
                                 .status(RotationStatus.PENDING)
                                 .reason(req == null ? null : req.reason())
@@ -102,14 +102,14 @@ public class PartnerPortalService {
 
         @Transactional(readOnly = true)
         public List<RotationRequestItem> myRotationRequests() {
-                UUID userId = currentClientUserId();
+                UUID userId = currentPartnerUserId();
 
-                ClientUser user = clientUserRepo.findById(userId)
+                PartnerUser user = partnerUserRepo.findById(userId)
                                 .orElseThrow(() -> new IllegalStateException("Partner user not found"));
 
-                UUID appId = user.getClientApp().getId();
+                UUID appId = user.getPartnerApp().getId();
 
-                return rotationRepo.findByClientApp_IdOrderByCreatedAtDesc(appId).stream()
+                return rotationRepo.findByPartnerApp_IdOrderByCreatedAtDesc(appId).stream()
                                 .map(r -> new RotationRequestItem(
                                                 r.getId(),
                                                 r.getStatus().name(),

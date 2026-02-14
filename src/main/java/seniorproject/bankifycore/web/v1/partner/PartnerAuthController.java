@@ -10,15 +10,14 @@ import seniorproject.bankifycore.dto.partner.PartnerLoginRequest;
 import seniorproject.bankifycore.dto.partner.PartnerLoginResponse;
 import seniorproject.bankifycore.dto.partner.PartnerSignupRequest;
 import seniorproject.bankifycore.dto.partner.PartnerSignupResponse;
-import seniorproject.bankifycore.service.partner.PartnerAuthService;
-
+import seniorproject.bankifycore.service.partner.PartnerPortalAuthService;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(ApiPaths.PARTNER)
 public class PartnerAuthController {
 
-    private final PartnerAuthService partnerAuthService;
+    private final PartnerPortalAuthService partnerAuthService;
 
     @PostMapping("/auth/signup")
     public PartnerSignupResponse signup(@RequestBody PartnerSignupRequest req) {

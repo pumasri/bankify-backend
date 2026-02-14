@@ -1,5 +1,5 @@
 package seniorproject.bankifycore.domain.enums;
 
-public enum ClientUserStatus {
-    ACTIVE,DISABLED
+public enum PartnerUserRole {
+    OWNER, MEMBER
 }

@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public record ApproveRotationResponse(
                 UUID requestId,
-                UUID clientAppId,
+                UUID partnerAppId,
                 String status,
                 String apiKey) {
 }

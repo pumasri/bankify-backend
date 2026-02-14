@@ -19,14 +19,13 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class PartnerMeService {
+public class PartnerApiService {
 
     private final PartnerAccountService partnerAccountService;
     private final TransactionService transactionService;
     private final AccountRepository accountRepo;
 
-
-    //get the partner balance
+    // get the partner balance
     @Transactional(readOnly = true)
     public PartnerBalanceResponse balance() {
         Account acc = partnerAccountService.getPartnerAccountOrThrow();
@@ -38,7 +37,7 @@ public class PartnerMeService {
         );
     }
 
-    //get the partner transacgtions
+    // get the partner transacgtions
     @Transactional(readOnly = true)
     public PartnerTransactionHistoryResponse history() {
         Account acc = partnerAccountService.getPartnerAccountOrThrow();
@@ -46,8 +45,7 @@ public class PartnerMeService {
         return new PartnerTransactionHistoryResponse(acc.getId(), txs);
     }
 
-
-    //partner money transfer
+    // partner money transfer
     @Transactional
     public TransactionResponse transfer(String idemKey, PartnerTransferRequest req) {
         Account from = partnerAccountService.getPartnerAccountOrThrow();
@@ -56,27 +54,24 @@ public class PartnerMeService {
             throw new IllegalStateException("AccountNumber is required");
         }
 
-        Account to =  accountRepo.findByAccountNumber(req.accountNumber())
+        Account to = accountRepo.findByAccountNumber(req.accountNumber())
                 .orElseThrow(() -> new IllegalArgumentException("Account not found"));
-
 
         if (from.getId().equals(to.getId())) {
             throw new IllegalStateException("Cannot transfer to the same account");
         }
 
         // prevent partner -> partner settlement transfers
-        if (to.getClientApp() != null) {
+        if (to.getPartnerApp() != null) {
             throw new IllegalStateException("Cannot transfer to another partner settlement account");
         }
 
         return transactionService.transfer(
                 idemKey,
-                new TransferRequest(from.getId(), to.getId(), req.amount(), req.note())
-        );
+                new TransferRequest(from.getId(), to.getId(), req.amount(), req.note()));
     }
 
-
-    //partner withdraw money
+    // partner withdraw money
     @Transactional
     public TransactionResponse withdraw(String idemKey, PartnerWithdrawRequest req) {
         Account acc = partnerAccountService.getPartnerAccountOrThrow();
@@ -84,16 +79,13 @@ public class PartnerMeService {
         return transactionService.withdraw(idemKey, serviceReq);
     }
 
-
-    //partner deposit money to his own account
+    // partner deposit money to his own account
     @Transactional
     public TransactionResponse deposit(String idemKey, PartnerDepositRequest req) {
         Account acc = partnerAccountService.getPartnerAccountOrThrow();
         DepositRequest serviceReq = new DepositRequest(acc.getId(), req.amount(), req.note());
         return transactionService.deposit(idemKey, serviceReq);
     }
-
-
 
     private Account resolveAccount(String accountNumber) {
         if (accountNumber != null && !accountNumber.isBlank()) {
@@ -102,7 +94,5 @@ public class PartnerMeService {
         }
         throw new IllegalStateException("AccountNumber is required");
     }
-
-
 
 }

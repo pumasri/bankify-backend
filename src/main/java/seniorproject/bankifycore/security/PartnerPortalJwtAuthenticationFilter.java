@@ -48,11 +48,11 @@ public class PartnerPortalJwtAuthenticationFilter extends OncePerRequestFilter {
                 }
 
                 if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UUID clientUserId = UUID.fromString(claims.getSubject());
+                    UUID partnerUserId = UUID.fromString(claims.getSubject());
                     String role = String.valueOf(claims.get("role")); // OWNER/MEMBER
 
                     var auth = new UsernamePasswordAuthenticationToken(
-                            clientUserId,
+                            partnerUserId,
                             null,
                             List.of(
                                     new SimpleGrantedAuthority("ROLE_PARTNER"),

@@ -18,14 +18,14 @@ Content-Type: application/json
 
 ### Create customer
 # @name createCustomer
-@randomInt = 20;
+@randomInt = 201;
 POST {{base}}/api/v1/admin/customers
 Authorization: Bearer {{adminJwt}}
 Content-Type: application/json
 
 {
-  "firstName": "Merina",
-  "lastName": "Shreshta",
+  "firstName": "Meili",
+  "lastName": "Not Sure",
   "phoneNumber": "0812345678",
   "email": "atm.user{{randomInt}}@demo.com",
   "type": "INDIVIDUAL"
@@ -40,7 +40,7 @@ GET {{base}}/api/v1/admin/customers
 Authorization: Bearer {{adminJwt}}
 
 ### Get customer
-GET {{base}}/api/v1/admin/customers/b64ad6ca-9cbc-42e1-8291-2d210d18c42f
+GET {{base}}/api/v1/admin/customers/{{customerId}}
 Authorization: Bearer {{adminJwt}}
 
 
@@ -55,7 +55,7 @@ Content-Type: application/json
   "customerId": "{{customerId}}",
   "type": "CURRENT",
   "currency": "THB",
-  "pin": "654321"
+  "pin": "123456"
 }
 
 > {%
@@ -68,7 +68,7 @@ GET {{base}}/api/v1/admin/accounts
 Authorization: Bearer {{adminJwt}}
 
 ### Get account
-GET {{base}}/api/v1/admin/accounts/b0fe7c7e-08c1-4252-92c6-bb82bf4b7d10
+GET {{base}}/api/v1/admin/accounts/bea1cdb1-d575-4699-a3a9-6adcdc6696af
 Authorization: Bearer {{adminJwt}}
 
 ### Ledger
@@ -94,7 +94,7 @@ Authorization: Bearer {{adminJwt}}
 
 ### Approve client -> partnerApiKey
 # @name approveClient
-PATCH {{base}}/api/v1/admin/clients/499a0f5f-d157-4d51-977c-7a294a9012c3/approve
+PATCH {{base}}/api/v1/admin/partner-apps/981c1ee2-acdc-4afc-be6e-a8002d19dfc0/approve
 Authorization: Bearer {{adminJwt}}
 
 > {%

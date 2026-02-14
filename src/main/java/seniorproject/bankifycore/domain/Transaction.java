@@ -47,7 +47,7 @@ public class Transaction extends Auditable {
         @JoinColumn(name = "to_account_id")
         private Account toAccount;
 
-        // idenpotency key(client sends; server enforeces unique)
+        // idenpotency key([partner sends; server enforeces unique)
         @Column(nullable = false, unique = true, length = 64)
         private String reference;
 

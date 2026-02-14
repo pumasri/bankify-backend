@@ -6,14 +6,14 @@ import org.springframework.web.bind.annotation.*;
 import seniorproject.bankifycore.consants.ApiPaths;
 import seniorproject.bankifycore.dto.partner.*;
 import seniorproject.bankifycore.dto.transaction.TransactionResponse;
-import seniorproject.bankifycore.service.partner.PartnerMeService;
+import seniorproject.bankifycore.service.partner.PartnerApiService;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(ApiPaths.PARTNER+"/me")
+@RequestMapping(ApiPaths.PARTNER + "/me")
 public class PartnerMeController {
 
-    private final PartnerMeService partnerMeService;
+    private final PartnerApiService partnerMeService;
 
     @PreAuthorize("hasRole('PARTNER')")
     @GetMapping("/balance")
